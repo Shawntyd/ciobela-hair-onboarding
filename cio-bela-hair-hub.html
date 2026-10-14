@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cio Bela — Hair Stylist Onboarding Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--ink:#16120E;--cream:#F7F2EC;--warm:#EDE4D4;--gold:#B08D57;--gold2:#CFA96E;--mid:#7A6A55;--muted:#A8967E;--border:#D5C8B4;--white:#FFFFFF;--alert:#7C3B20;--alert-bg:#FBF0E9;--green:#2F5C42;--green-bg:#ECF4EF;--info:#1B4D6B;--info-bg:#EBF4FA;}
+
+/* MOBILE-FIRST RESET — no scroll snapping, no overflow traps */
+*{box-sizing:border-box;margin:0;padding:0;}
+html{
+  height:auto;
+  overflow-x:hidden;
+  -webkit-overflow-scrolling:touch;
+  scroll-snap-type:none !important;
+}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--cream);
+  color:var(--ink);
+  min-height:auto;
+  height:auto;
+  overflow-x:hidden;
+  overflow-y:auto;
+  position:relative;
+  -webkit-overflow-scrolling:touch;
+}
+
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* WELCOME SCREEN — removed min-height:100vh, use padding instead */
+#sw{
+  background:var(--ink);
+  display:none;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  text-align:center;
+  padding:60px 24px 60px;
+  position:relative;
+  width:100%;
+}
+#sw.active{display:flex;}
+#sw::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(176,141,87,.04) 60px,rgba(176,141,87,.04) 61px),repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(176,141,87,.04) 60px,rgba(176,141,87,.04) 61px);pointer-events:none;}
+.w-inner{position:relative;z-index:1;max-width:520px;}
+.w-rule{width:48px;height:1px;background:var(--gold);margin:0 auto 22px;}
+.w-tag{font-size:10px;letter-spacing:.36em;text-transform:uppercase;color:var(--gold2);font-weight:500;margin-bottom:16px;}
+.w-title{font-family:'Cormorant Garamond',serif;font-size:clamp(34px,8vw,56px);font-weight:300;color:var(--cream);line-height:1.1;margin-bottom:8px;}
+.w-title em{font-style:italic;color:var(--gold2);}
+.w-sub{font-size:13px;color:var(--muted);font-weight:300;line-height:1.8;margin-bottom:6px;}
+.w-addr{font-size:11px;color:#4A4035;margin-bottom:30px;}
+.w-cards{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:30px;}
+.w-card{background:rgba(255,255,255,.04);border:1px solid rgba(176,141,87,.2);border-radius:4px;padding:14px 18px;text-align:center;}
+.w-card .n{font-family:'Cormorant Garamond',serif;font-size:24px;color:var(--gold2);}
+.w-card .l{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-top:2px;}
+.w-note{font-size:12px;color:#4A4035;line-height:1.75;margin-bottom:30px;padding:0 6px;}
+.btn-gold{background:var(--gold);color:#fff;border:none;padding:14px 44px;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.26em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;transition:background .2s;}
+.btn-gold:hover{background:var(--mid);}
+.w-ret{font-size:12px;color:var(--muted);cursor:pointer;text-decoration:underline;text-underline-offset:3px;margin-top:16px;display:block;}
+.modal-bg{position:fixed;inset:0;background:rgba(22,18,14,.75);z-index:300;display:none;align-items:center;justify-content:center;padding:20px;}
+.modal-bg.active{display:flex;}
+.modal-box{background:var(--white);border-radius:4px;padding:30px 26px;max-width:400px;width:100%;border-top:3px solid var(--gold);}
+.modal-box h3{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;margin-bottom:10px;}
+.modal-box p{font-size:13px;color:var(--mid);line-height:1.7;margin-bottom:16px;}
+.modal-btns{display:flex;gap:10px;flex-wrap:wrap;}
+.err-msg{color:var(--alert);font-size:12px;margin-top:10px;display:none;}
+#loading{position:fixed;inset:0;background:var(--ink);z-index:500;display:none;flex-direction:column;align-items:center;justify-content:center;}
+#loading.active{display:flex;}
+.lring{width:48px;height:48px;border:3px solid rgba(176,141,87,.2);border-top:3px solid var(--gold);border-radius:50%;animation:spin 1s linear infinite;margin-bottom:16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.ltxt{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);}
+
+/* Profile and hub screens — no fixed heights */
+#sp, #sh, #sf{
+  width:100%;
+  height:auto;
+  min-height:auto;
+  overflow:visible;
+  position:relative;
+}
+.page-hdr{background:var(--ink);padding:22px 20px;text-align:center;border-bottom:2px solid var(--gold);}
+.page-brand{font-family:'Cormorant Garamond',serif;font-size:clamp(18px,4vw,26px);font-weight:300;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);}
+.page-sub{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#8C7A64;margin-top:4px;font-weight:300;}
+.wrap{max-width:680px;margin:0 auto;padding:36px 20px 80px;}
+.intro-box{background:var(--white);border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:4px;padding:22px 24px;margin-bottom:24px;}
+.intro-box h2{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;margin-bottom:8px;}
+.intro-box p{font-size:13px;color:var(--mid);line-height:1.8;font-weight:300;}
+.sec-lbl{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:500;margin:24px 0 12px;display:flex;align-items:center;gap:10px;}
+.sec-lbl::after{content:'';flex:1;height:1px;background:var(--border);}
+.fg{margin-bottom:16px;}
+.fg label{display:block;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--mid);margin-bottom:5px;font-weight:500;}
+.fg input,.fg select{width:100%;background:var(--white);border:1px solid var(--border);border-radius:3px;padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--gold);}
+.fg input.err{border-color:var(--alert)!important;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;}
+@media(max-width:500px){.g2,.g3{grid-template-columns:1fr;}}
+.instr{border-radius:0 4px 4px 0;padding:11px 15px;margin-bottom:13px;font-size:12.5px;line-height:1.65;}
+.instr.info{background:var(--info-bg);border-left:3px solid var(--info);color:var(--info);}
+.instr strong{font-weight:600;}
+.btn-primary{background:var(--gold);color:#fff;border:none;padding:13px 32px;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;transition:background .2s;}
+.btn-primary:hover{background:var(--mid);}
+.btn-ghost{background:transparent;color:var(--mid);border:1px solid var(--border);padding:13px 22px;font-family:'DM Sans',sans-serif;font-size:11px;letter-spacing:.16em;text-transform:uppercase;cursor:pointer;border-radius:2px;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.hub-bar{background:var(--ink);border-bottom:2px solid var(--gold);position:sticky;top:0;z-index:50;}
+.hub-bar-in{max-width:860px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:12px;flex-wrap:wrap;}
+.hub-brand{font-family:'Cormorant Garamond',serif;font-size:20px;color:var(--gold2);font-weight:300;letter-spacing:.12em;}
+.hub-person{text-align:right;}
+.hub-pname{font-size:13px;font-weight:500;color:var(--cream);}
+.hub-psub{font-size:10px;color:var(--muted);}
+.hub-edit{font-size:10px;color:var(--gold2);cursor:pointer;text-decoration:underline;margin-left:8px;}
+.hub-wrap{max-width:860px;margin:0 auto;padding:28px 20px 80px;}
+.prog-card{background:var(--white);border:1px solid var(--border);border-radius:4px;padding:20px 24px;margin-bottom:24px;display:flex;align-items:center;gap:20px;flex-wrap:wrap;}
+.prog-ring{position:relative;width:72px;height:72px;flex-shrink:0;}
+.prog-ring svg{width:72px;height:72px;transform:rotate(-90deg);}
+.rtr{fill:none;stroke:var(--warm);stroke-width:6;}
+.rfi{fill:none;stroke:var(--gold);stroke-width:6;stroke-linecap:round;transition:stroke-dashoffset .6s ease;stroke-dasharray:201;stroke-dashoffset:201;}
+.rlb{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.rpct{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--ink);}
+.rlbl{font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--mid);}
+.prog-info h3{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:400;margin-bottom:4px;}
+.prog-info p{font-size:13px;color:var(--mid);font-weight:300;line-height:1.7;}
+.pchips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.pchip{font-size:9px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:10px;font-weight:500;}
+.ch-done{background:var(--green-bg);color:var(--green);border:1px solid var(--green);}
+.ch-todo{background:var(--warm);color:var(--mid);border:1px solid var(--border);}
+.af-bar{background:var(--info-bg);border-left:3px solid var(--info);border-radius:0 4px 4px 0;padding:11px 15px;margin-bottom:20px;font-size:12.5px;color:var(--info);}
+.af-bar strong{font-weight:600;}
+.prof-grid{background:var(--ink);border-radius:4px;padding:16px 20px;margin-bottom:22px;display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;}
+@media(max-width:480px){.prof-grid{grid-template-columns:1fr;}}
+.pi-lbl{font-size:8px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold2);margin-bottom:2px;}
+.pi-val{font-size:13px;color:var(--cream);font-weight:300;}
+.hub-sec{font-size:10px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold);font-weight:500;margin:22px 0 11px;display:flex;align-items:center;gap:10px;}
+.hub-sec::after{content:'';flex:1;height:1px;background:var(--border);}
+.doc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px;margin-bottom:24px;}
+.doc-card{background:var(--white);border:1px solid var(--border);border-radius:4px;overflow:hidden;cursor:pointer;transition:box-shadow .2s,border-color .2s;}
+.doc-card:hover{box-shadow:0 4px 16px rgba(22,18,14,.08);border-color:var(--gold2);}
+.doc-card.done{border-color:var(--green);}
+.dc-body{padding:16px 16px 11px;}
+.dc-icon{font-size:22px;margin-bottom:8px;}
+.dc-badge{font-size:8px;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:10px;font-weight:600;display:inline-block;margin-bottom:6px;}
+.b-req{background:var(--alert-bg);color:var(--alert);border:1px solid var(--alert);}
+.b-opt{background:var(--warm);color:var(--mid);border:1px solid var(--border);}
+.dc-num{font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.dc-title{font-family:'Cormorant Garamond',serif;font-size:16px;font-weight:400;color:var(--ink);margin-bottom:4px;}
+.dc-desc{font-size:11px;color:var(--mid);font-weight:300;line-height:1.55;}
+.dc-foot{padding:10px 16px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:var(--cream);}
+.doc-card.done .dc-foot{background:var(--green-bg);border-color:var(--green);}
+.dc-st{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:600;color:var(--mid);}
+.doc-card.done .dc-st{color:var(--green);}
+.dc-go{font-size:11px;color:var(--gold);font-weight:500;}
+.doc-card.done .dc-go{color:var(--green);}
+.hub-footer{text-align:center;padding:20px;font-size:12px;color:var(--muted);font-weight:300;line-height:1.8;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+<a id="top-anchor" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<div id="loading"><div class="lring"></div><div class="ltxt">Loading your profile...</div></div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal-box">
+    <h3>Welcome Back</h3>
+    <p>Enter the email you used when you started. Your profile and progress will load from any device.</p>
+    <div class="fg" style="margin-bottom:14px;"><label>Email Address</label><input type="email" id="ret-email" placeholder="your@email.com"></div>
+    <div class="modal-btns">
+      <button class="btn-primary" onclick="loadReturning()">Load My Progress</button>
+      <button class="btn-ghost" onclick="closeModal()">Cancel</button>
+    </div>
+    <div class="err-msg" id="ret-err">No profile found for that email. Please check the address or start from the beginning.</div>
+  </div>
+</div>
+
+<div class="screen" id="sw">
+  <div class="w-inner">
+    <div class="w-rule"></div>
+    <div class="w-tag">Contractor Onboarding</div>
+    <h1 class="w-title">Welcome to<br><em>Cio Bela</em></h1>
+    <p class="w-sub">Cio Bela Salons</p>
+    <p class="w-addr">27327 Robinson Rd. · Suites 3 &amp; 4 · Oak Ridge North, TX 77385</p>
+    <div class="w-cards">
+      <div class="w-card"><div class="n">1</div><div class="l">Profile</div></div>
+      <div class="w-card"><div class="n">7</div><div class="l">Documents</div></div>
+      <div class="w-card"><div class="n">1x</div><div class="l">Enter Info</div></div>
+    </div>
+    <p class="w-note">Fill out your profile once. Your details auto-fill into every document. Return on any device with your email — your progress is always saved.</p>
+    <button class="btn-gold" onclick="go('sp')">Begin Onboarding</button>
+    <span class="w-ret" onclick="openModal()">Already started? Continue where you left off</span>
+  </div>
+</div>
+
+<div class="screen" id="sp">
+  <div class="page-hdr"><div class="page-brand">Cio Bela</div><div class="page-sub">Step 1 of 2 — Your Contractor Profile</div></div>
+  <div class="wrap">
+    <div class="intro-box">
+      <h2>Enter Your Information Once</h2>
+      <p>These details auto-fill into every document in your onboarding packet. Your profile is saved securely and accessible from any device using your email address.</p>
+    </div>
+    <div class="instr info"><strong>Cross-device access.</strong> You can close this page and return on any device — just use your email address to pick up where you left off.</div>
+    <div class="sec-lbl">Personal Information</div>
+    <div class="g2">
+      <div class="fg"><label>Full Legal Name *</label><input type="text" id="pn" placeholder="As it appears on your license"></div>
+      <div class="fg"><label>Preferred / Stylist Name</label><input type="text" id="pp" placeholder="Optional"></div>
+    </div>
+    <div class="g3">
+      <div class="fg"><label>Date of Birth *</label><input type="date" id="pd"></div>
+      <div class="fg"><label>Phone Number *</label><input type="tel" id="ph" placeholder="(xxx) xxx-xxxx"></div>
+      <div class="fg"><label>Email Address *</label><input type="email" id="pe" placeholder="your@email.com"></div>
+    </div>
+    <div class="fg"><label>Home / Mailing Address *</label><input type="text" id="pa" placeholder="Street, City, State, ZIP"></div>
+    <div class="g2">
+      <div class="fg"><label>Emergency Contact Name *</label><input type="text" id="pen" placeholder="Full name"></div>
+      <div class="fg"><label>Emergency Contact Phone *</label><input type="tel" id="pep" placeholder="(xxx) xxx-xxxx"></div>
+    </div>
+    <div class="sec-lbl">Texas License</div>
+    <div class="g3">
+      <div class="fg"><label>License Number *</label><input type="text" id="pl" placeholder="TX-XXXXXXXX"></div>
+      <div class="fg"><label>License Type *</label>
+        <select id="plt"><option value="">— Select —</option><option>Cosmetology Operator</option><option>Barber</option><option>Other TDLR License</option></select>
+      </div>
+      <div class="fg"><label>License Expiration *</label><input type="date" id="ple"></div>
+    </div>
+    <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
+      <button class="btn-primary" onclick="saveProfile()">Save Profile &amp; Continue</button>
+      <button class="btn-ghost" onclick="go('sw')">Back</button>
+    </div>
+  </div>
+</div>
+
+<div class="screen" id="sh">
+  <div class="hub-bar">
+    <div class="hub-bar-in">
+      <div class="hub-brand">Cio Bela</div>
+      <div class="hub-person">
+        <div class="hub-pname" id="hub-name"></div>
+        <div class="hub-psub">Contractor Onboarding <span class="hub-edit" onclick="go('sp')">Edit Profile</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="hub-wrap">
+    <div class="prog-card">
+      <div class="prog-ring">
+        <svg viewBox="0 0 72 72"><circle class="rtr" cx="36" cy="36" r="32"/><circle class="rfi" id="ring" cx="36" cy="36" r="32"/></svg>
+        <div class="rlb"><div class="rpct" id="rpct">0%</div><div class="rlbl">Done</div></div>
+      </div>
+      <div class="prog-info">
+        <h3 id="ptitle">Your Onboarding Checklist</h3>
+        <p id="pmsg">Complete all required documents below. Your info is pre-filled in every form.</p>
+        <div class="pchips" id="pchips"></div>
+      </div>
+    </div>
+    <div class="af-bar"><strong>Auto-fill active.</strong> Your name, contact info, and license details are pre-filled in every document. Just read, acknowledge, and sign each one.</div>
+    <div class="hub-sec">Your Profile</div>
+    <div class="prof-grid" id="prof-grid"></div>
+    <div class="hub-sec">Required Documents</div>
+    <div class="doc-grid" id="grid-req"></div>
+    <div class="hub-sec">Optional Documents</div>
+    <div class="doc-grid" id="grid-opt"></div>
+    <div class="hub-footer">Cio Bela — Multi Service Salon, Spa &amp; Wellness Center LLC<br>27327 Robinson Rd., Suites 3 &amp; 4 · Oak Ridge North, TX 77385<br>Questions? Contact management before your first day.</div>
+  </div>
+</div>
+
+<script>
+var P = {};
+var C = {};
+
+// ── SUPABASE ──
+var SUPA_URL = 'https://cphlvgsneukrrzyajikb.supabase.co';
+var SUPA_KEY = 'sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC';
+var db = null;
+try { db = window.supabase.createClient(SUPA_URL, SUPA_KEY); } catch(e) { console.error('Supabase init error:', e); }
+
+async function dbSave(profile) {
+  if (!db) return false;
+  try {
+    var email = profile.email.toLowerCase().trim();
+    var existing = await db.from('contractor_profiles').select('id').eq('email', email);
+    if (existing.data && existing.data.length > 0) {
+      await db.from('contractor_profiles').update({
+        full_name: profile.fullName, preferred_name: profile.preferredName || '',
+        date_of_birth: profile.dateOfBirth, phone: profile.phone,
+        address: profile.address, emergency_name: profile.emergencyName,
+        emergency_phone: profile.emergencyPhone, license_number: profile.licenseNumber,
+        license_type: profile.licenseType, license_expiration: profile.licenseExpiration,
+        updated_at: new Date().toISOString()
+      }).eq('email', email);
+    } else {
+      await db.from('contractor_profiles').insert({
+        full_name: profile.fullName, preferred_name: profile.preferredName || '',
+        date_of_birth: profile.dateOfBirth, phone: profile.phone, email: email,
+        address: profile.address, emergency_name: profile.emergencyName,
+        emergency_phone: profile.emergencyPhone, license_number: profile.licenseNumber,
+        license_type: profile.licenseType, license_expiration: profile.licenseExpiration,
+        created_at: new Date().toISOString(), updated_at: new Date().toISOString()
+      });
+      await db.from('contractor_progress').insert({
+        contractor_email: email, contractor_name: profile.fullName,
+        contract_signed: false, payment_signed: false, w9_signed: false,
+        standards_signed: false, id_uploaded: false, release_signed: false,
+        emergency_signed: false, total_complete: 0, onboarding_done: false
+      });
+    }
+    return true;
+  } catch(e) { console.error('DB save error:', e); return false; }
+}
+
+async function dbLoad(email) {
+  if (!db) return null;
+  try {
+    var clean = email.toLowerCase().trim();
+    var pr = await db.from('contractor_profiles').select('*').eq('email', clean);
+    var pg = await db.from('contractor_progress').select('*').eq('contractor_email', clean);
+    if (!pr.data || pr.data.length === 0) return null;
+    return { profile: pr.data[0], progress: pg.data ? pg.data[0] : null };
+  } catch(e) { console.error('DB load error:', e); return null; }
+}
+
+async function dbMarkDone(email, docId) {
+  if (!db) return;
+  try {
+    var clean = email.toLowerCase().trim();
+    var map = {
+      contract:'contract_signed', payment:'payment_signed', w9:'w9_signed',
+      standards:'standards_signed', idupload:'id_uploaded', release:'release_signed',
+      emergency:'emergency_signed'
+    };
+    var field = map[docId];
+    if (!field) return;
+
+    // First get current progress to count total
+    var current = await db.from('contractor_progress').select('*').eq('contractor_email', clean);
+    if (!current.data || current.data.length === 0) return;
+
+    var row = current.data[0];
+    row[field] = true;
+
+    // Count total complete
+    var allFields = ['contract_signed','payment_signed','w9_signed','standards_signed','id_uploaded','release_signed','emergency_signed'];
+    var total = allFields.filter(function(f) { return !!row[f]; }).length;
+    var done = total >= 6; // 6 required docs (emergency optional)
+
+    var upd = {};
+    upd[field] = true;
+    upd.total_complete = total;
+    upd.onboarding_done = done;
+
+    await db.from('contractor_progress').update(upd).eq('contractor_email', clean);
+  } catch(e) { console.error('DB markDone error:', e); }
+}
+
+var DOCS = [
+  {id:'contract',  num:'01', icon:'📋', title:'Contractor Agreement',        desc:'Full Master Booth Rental & Independent Contractor Agreement — all six Fortress sections, all protections, fully intact under Texas law.', req:true,  file:'cio-bela-hair-contract.html'},
+  {id:'payment',   num:'02', icon:'💳', title:'Payment Authorization',        desc:'Authorize your weekly Saturday auto-pay and provide your payment method on file.', req:true,  file:'cio-bela-payment-authorization.html'},
+  {id:'w9',        num:'03', icon:'🗂', title:'W-9 Tax Form',                 desc:'Provide your Taxpayer Identification Number for IRS 1099-NEC reporting at year end.', req:true,  file:'cio-bela-w9-packet.html'},
+  {id:'standards', num:'04', icon:'📖', title:'Brand Standards Handbook',     desc:'Read and acknowledge all six sections — appearance, cleanliness, ambiance, client communication, social media, and guest policy.', req:true,  file:'cio-bela-brand-standards.html'},
+  {id:'idupload',  num:'05', icon:'🪪', title:'ID & License Upload',          desc:'Upload your government-issued ID and active Texas cosmetology operator or barber license.', req:true,  file:'cio-bela-id-upload.html'},
+  {id:'release',   num:'06', icon:'📸', title:'Social Media & Photo Release', desc:'Define permissions for how Cio Bela may use your work and likeness, and confirm your obligations.', req:true,  file:'cio-bela-photo-release.html'},
+  {id:'emergency', num:'07', icon:'🚨', title:'Emergency Contact & Medical',  desc:'Provide emergency contacts and medical information for workplace safety. Strictly confidential.', req:false, file:'cio-bela-emergency-contact.html'},
+  {id:'bio',       num:'08', icon:'✨', title:'Stylist Bio & Profile',          desc:'Tell us about your style, your services and pricing, and your story — this builds your public booking profile.', req:true,  file:'cio-bela-hair-bio-profile.html'},
+  {id:'legal',     num:'09', icon:'⚖️', title:'Legal Agreements',             desc:'Shared Station Agreement, Daily Stewardship Checklist, Texas Safety & Compliance Protocols, 1099 Tax Acknowledgment, and Liability Waiver.', req:true,  file:'cio-bela-hair-legal-catchup.html'}
+];
+
+function go(id) {
+  var ss = document.querySelectorAll('.screen');
+  for (var i = 0; i < ss.length; i++) ss[i].classList.remove('active');
+  document.getElementById(id).classList.add('active');
+  try { window.scrollTo(0,0); } catch(e) {}
+  try { document.documentElement.scrollTop=0; } catch(e) {}
+  try { document.body.scrollTop=0; } catch(e) {}
+}
+
+function showLoad() { document.getElementById('loading').classList.add('active'); }
+function hideLoad() { document.getElementById('loading').classList.remove('active'); }
+function openModal() { document.getElementById('modal').classList.add('active'); }
+function closeModal() { document.getElementById('modal').classList.remove('active'); document.getElementById('ret-err').style.display='none'; }
+
+function mapProfile(raw) {
+  return {
+    fullName: raw.fullName || '', preferredName: raw.preferredName || '',
+    dateOfBirth: raw.dateOfBirth || '', phone: raw.phone || '',
+    email: raw.email || '', address: raw.address || '',
+    emergencyName: raw.emergencyName || '', emergencyPhone: raw.emergencyPhone || '',
+    licenseNumber: raw.licenseNumber || '', licenseType: raw.licenseType || '',
+    licenseExpiration: raw.licenseExpiration || '',
+    boothRate: raw.boothRate || '', rentalTier: raw.rentalTier || ''
+  };
+}
+function mapProgress(raw) {
+  return {
+    contract: !!raw.contractSigned, payment: !!raw.paymentSigned,
+    w9: !!raw.w9Signed, standards: !!raw.standardsSigned,
+    idupload: !!raw.idUploaded, release: !!raw.releaseSigned,
+    emergency: !!raw.emergencySigned
+  };
+}
+
+function lSave(k,v) { try { localStorage.setItem(k,JSON.stringify(v)); } catch(e) {} }
+function lLoad(k) { try { var v=localStorage.getItem(k); return v?JSON.parse(v):null; } catch(e) { return null; } }
+
+function loadReturning() {
+  var email = document.getElementById('ret-email').value.trim();
+  if (!email) return;
+  document.getElementById('ret-err').style.display = 'none';
+
+  // Check localStorage first (same device)
+  var sp = lLoad('cb_p'), sc = lLoad('cb_c');
+  if (sp && sp.email && sp.email.toLowerCase() === email.toLowerCase()) {
+    P = sp; C = sc || {};
+    closeModal(); go('sh'); buildHub();
+    return;
+  }
+
+  // Try Supabase for cross-device
+  showLoad();
+  dbLoad(email).then(function(result) {
+    hideLoad();
+    if (result && result.profile) {
+      var raw = result.profile;
+      P = {
+        fullName: raw.full_name, preferredName: raw.preferred_name,
+        dateOfBirth: raw.date_of_birth, phone: raw.phone, email: raw.email,
+        address: raw.address, emergencyName: raw.emergency_name,
+        emergencyPhone: raw.emergency_phone, licenseNumber: raw.license_number,
+        licenseType: raw.license_type, licenseExpiration: raw.license_expiration
+      };
+      if (result.progress) {
+        var pg = result.progress;
+        C = {
+          contract: !!pg.contract_signed, payment: !!pg.payment_signed,
+          w9: !!pg.w9_signed, standards: !!pg.standards_signed,
+          idupload: !!pg.id_uploaded, release: !!pg.release_signed,
+          emergency: !!pg.emergency_signed
+        };
+      }
+      lSave('cb_p', P); lSave('cb_c', C);
+      closeModal(); go('sh'); buildHub();
+    } else {
+      document.getElementById('ret-err').style.display = 'block';
+    }
+  });
+}
+
+function saveProfile() {
+  var ids=['pn','pd','ph','pe','pa','pen','pep','pl','ple'];
+  var ok=true;
+  for (var i=0;i<ids.length;i++) {
+    var el=document.getElementById(ids[i]);
+    if (!el.value.trim()) { el.classList.add('err'); ok=false; }
+    else el.classList.remove('err');
+  }
+  if (!document.getElementById('plt').value) ok=false;
+  if (!ok) { alert('Please complete all required fields.'); return; }
+  P = {
+    fullName:          document.getElementById('pn').value.trim(),
+    preferredName:     document.getElementById('pp').value.trim(),
+    dateOfBirth:       document.getElementById('pd').value,
+    phone:             document.getElementById('ph').value.trim(),
+    email:             document.getElementById('pe').value.trim(),
+    address:           document.getElementById('pa').value.trim(),
+    emergencyName:     document.getElementById('pen').value.trim(),
+    emergencyPhone:    document.getElementById('pep').value.trim(),
+    licenseNumber:     document.getElementById('pl').value.trim(),
+    licenseType:       document.getElementById('plt').value,
+    licenseExpiration: document.getElementById('ple').value,
+    boothRate:         '',
+    rentalTier:        ''
+  };
+  // Save to localStorage immediately — user never gets stuck
+  lSave('cb_p', P);
+  // Save to Supabase in background — non-blocking
+  dbSave(P).then(function(ok) {
+    if (!ok) console.warn('Supabase save failed — data is in localStorage');
+  });
+  // Always proceed immediately
+  go('sh');
+  buildHub();
+}
+
+function buildHub() {
+  document.getElementById('hub-name').textContent = P.fullName||'';
+  buildProfilePreview();
+  buildGrid();
+  updateProgress();
+}
+
+function buildProfilePreview() {
+  var items = [
+    ['Legal Name',P.fullName],['Preferred',P.preferredName||'—'],
+    ['Phone',P.phone],['Email',P.email],
+    ['License #',P.licenseNumber],['License Type',P.licenseType],
+    ['Expires',P.licenseExpiration],['Weekly Rate',P.boothRate]
+  ];
+  var g = document.getElementById('prof-grid');
+  g.innerHTML='';
+  for (var i=0;i<items.length;i++) {
+    var d=document.createElement('div');
+    d.innerHTML='<div class="pi-lbl">'+items[i][0]+'</div><div class="pi-val">'+(items[i][1]||'—')+'</div>';
+    g.appendChild(d);
+  }
+}
+
+function buildGrid() {
+  var rg=document.getElementById('grid-req'), og=document.getElementById('grid-opt');
+  rg.innerHTML=''; og.innerHTML='';
+  for (var j=0;j<DOCS.length;j++) {
+    var doc=DOCS[j], done=!!C[doc.id];
+    var card=document.createElement('div');
+    card.className='doc-card'+(done?' done':'');
+    (function(d) { card.onclick=function(){ openDoc(d); }; })(doc);
+    card.innerHTML=
+      '<div class="dc-body">'+
+        '<div class="dc-icon">'+doc.icon+'</div>'+
+        '<span class="dc-badge '+(doc.req?'b-req':'b-opt')+'">'+(doc.req?'Required':'Optional')+'</span>'+
+        '<div class="dc-num">Document '+doc.num+'</div>'+
+        '<div class="dc-title">'+doc.title+'</div>'+
+        '<div class="dc-desc">'+doc.desc+'</div>'+
+      '</div>'+
+      '<div class="dc-foot">'+
+        '<div class="dc-st">'+(done?'&#10003; Complete':'Not started')+'</div>'+
+        '<div class="dc-go">'+(done?'Review':'Open')+' &rarr;</div>'+
+      '</div>';
+    if (doc.req) rg.appendChild(card); else og.appendChild(card);
+  }
+}
+
+function updateProgress() {
+  var total=DOCS.length, done=0;
+  for (var k in C) { if (C[k]) done++; }
+  var pct=Math.round((done/total)*100);
+  document.getElementById('rpct').textContent=pct+'%';
+  var circ=201;
+  document.getElementById('ring').style.strokeDashoffset=circ-(pct/100)*circ;
+  document.getElementById('ptitle').textContent=done===total?'Onboarding Complete!':'Your Onboarding Checklist';
+  document.getElementById('pmsg').textContent=done===total
+    ?'All documents complete. Email your signed PDFs to ciobela@email.com.'
+    :done+' of '+total+' documents complete.';
+  var chips=document.getElementById('pchips');
+  chips.innerHTML='';
+  for (var j=0;j<DOCS.length;j++) {
+    var chip=document.createElement('div');
+    chip.className='pchip '+(C[DOCS[j].id]?'ch-done':'ch-todo');
+    chip.textContent=(C[DOCS[j].id]?'\u2713 ':'')+DOCS[j].title;
+    chips.appendChild(chip);
+  }
+}
+
+function openDoc(doc) {
+  try { sessionStorage.setItem('cb_prefill', JSON.stringify(P)); } catch(e) {}
+  var baseUrl = 'https://shawntyd.github.io/ciobela-hair-onboarding/';
+  window.location.href = baseUrl + doc.file + '?email=' + encodeURIComponent(P.email || '') + '&hub=hair#top';
+}
+
+function markDocComplete(docId) {
+  C[docId] = true;
+  lSave('cb_c', C);
+  // Save to Supabase in background
+  if (P.email) {
+    dbMarkDone(P.email, docId);
+  }
+  closeDocOverlay();
+}
+
+var currentDocId = '';
+
+function showDocModal(doc) {
+  currentDocId = doc.id;
+  // Create a full-screen overlay with instructions and a mark-complete button
+  var overlay = document.getElementById('doc-overlay');
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.id = 'doc-overlay';
+    overlay.style.cssText = 'position:fixed;inset:0;background:var(--cream);z-index:400;overflow-y:auto;';
+    document.body.appendChild(overlay);
+  }
+
+  var fileLinks = {
+    contract:  'cio-bela-hair-contract.html',
+    payment:   'cio-bela-payment-authorization.html',
+    w9:        'cio-bela-w9-packet.html',
+    standards: 'cio-bela-brand-standards.html',
+    idupload:  'cio-bela-id-upload.html',
+    release:   'cio-bela-photo-release.html',
+    emergency: 'cio-bela-emergency-contact.html'
+  };
+
+  var alreadyDone = !!C[doc.id];
+
+  overlay.innerHTML =
+    '<div style="background:var(--ink);padding:14px 20px;border-bottom:2px solid var(--gold);display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10;">' +
+      '<div onclick="closeDocOverlay()" style="font-size:11px;color:var(--gold2);cursor:pointer;letter-spacing:.12em;text-transform:uppercase;font-weight:500;">&#8592; Back to Hub</div>' +
+      '<div style="font-size:13px;color:var(--cream);font-weight:300;">' + doc.title + '</div>' +
+    '</div>' +
+    '<div style="max-width:680px;margin:0 auto;padding:36px 20px 80px;">' +
+
+      '<div style="background:var(--white);border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:4px;padding:24px 26px;margin-bottom:22px;">' +
+        '<div style="font-family:Cormorant Garamond,serif;font-size:28px;font-weight:400;margin-bottom:10px;">' + doc.icon + ' ' + doc.title + '</div>' +
+        '<p style="font-size:13px;color:var(--mid);line-height:1.8;font-weight:300;">' + doc.desc + '</p>' +
+      '</div>' +
+
+      (alreadyDone ?
+        '<div style="background:var(--green);color:#fff;border-radius:4px;padding:18px 22px;text-align:center;margin-bottom:20px;">' +
+          '<div style="font-size:16px;font-weight:600;margin-bottom:4px;">&#10003; This document is marked complete</div>' +
+          '<div style="font-size:13px;opacity:.85;">You can reopen and review the full document at any time.</div>' +
+        '</div>'
+      : '') +
+
+      '<div style="background:var(--info-bg);border-left:3px solid var(--info);border-radius:0 4px 4px 0;padding:14px 18px;margin-bottom:20px;font-size:13px;color:var(--info);line-height:1.7;">' +
+        '<strong>Standalone Testing Mode.</strong> In production on your Wix site, this document opens as a full page with your profile auto-filled. ' +
+        'To review the complete document now, download it from the files panel and open it in your browser. ' +
+        'You can mark it complete here to test the hub progress tracking.' +
+      '</div>' +
+
+      '<div style="background:var(--ink);border-radius:4px;padding:20px 22px;margin-bottom:20px;">' +
+        '<div style="font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold2);margin-bottom:14px;">Your Profile — Will Auto-Fill Into This Document</div>' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px 16px;">' +
+          profRow('Legal Name', P.fullName) +
+          profRow('Phone', P.phone) +
+          profRow('Email', P.email) +
+          profRow('License #', P.licenseNumber) +
+          profRow('License Type', P.licenseType) +
+          profRow('Booth Rate', P.boothRate) +
+          profRow('Address', P.address) +
+          profRow('Tier', P.rentalTier || '—') +
+        '</div>' +
+      '</div>' +
+
+      '<div style="background:var(--warn, var(--alert-bg));border-left:3px solid var(--alert);border-radius:0 4px 4px 0;padding:12px 16px;margin-bottom:20px;font-size:12.5px;color:var(--alert);line-height:1.65;">' +
+        '<strong>Important:</strong> The full document file (<strong>' + fileLinks[doc.id] + '</strong>) contains the complete legal text, all clauses, checkboxes, signature pad, and PDF generator. Open it separately to review the full content.' +
+      '</div>' +
+
+      '<button onclick="markDocComplete(\'' + doc.id + '\')" style="width:100%;background:var(--gold);color:#fff;border:none;padding:15px;font-family:DM Sans,sans-serif;font-size:11px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;margin-bottom:12px;">Mark as Complete (Testing)</button>' +
+      '<button onclick="closeDocOverlay()" style="width:100%;background:transparent;color:var(--mid);border:1px solid var(--border);padding:14px;font-family:DM Sans,sans-serif;font-size:11px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border-radius:2px;">Back to Hub</button>' +
+    '</div>';
+
+  overlay.style.display = 'block';
+  window.scrollTo(0,0);
+}
+
+function profRow(label, val) {
+  return '<div><div style="font-size:8px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold2);margin-bottom:2px;">' + label + '</div>' +
+    '<div style="font-size:13px;color:var(--cream);font-weight:300;">' + (val || '—') + '</div></div>';
+}
+
+function closeDocOverlay() {
+  var overlay = document.getElementById('doc-overlay');
+  if (overlay) overlay.style.display = 'none';
+  buildHub();
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  var params = new URLSearchParams(window.location.search);
+  var emailParam = params.get('email');
+  var completedDoc = params.get('completed');
+
+  // Check localStorage first
+  var sp = lLoad('cb_p'), sc = lLoad('cb_c');
+
+  if (emailParam) {
+    showLoad();
+    dbLoad(emailParam).then(function(result) {
+      hideLoad();
+      if (result && result.profile) {
+        var raw = result.profile;
+        P = {
+          fullName: raw.full_name, preferredName: raw.preferred_name || '',
+          dateOfBirth: raw.date_of_birth, phone: raw.phone, email: raw.email,
+          address: raw.address, emergencyName: raw.emergency_name,
+          emergencyPhone: raw.emergency_phone, licenseNumber: raw.license_number,
+          licenseType: raw.license_type, licenseExpiration: raw.license_expiration
+        };
+        // Load progress from Supabase
+        if (result.progress) {
+          var pg = result.progress;
+          C = {
+            contract:  !!pg.contract_signed,
+            payment:   !!pg.payment_signed,
+            w9:        !!pg.w9_signed,
+            standards: !!pg.standards_signed,
+            idupload:  !!pg.id_uploaded,
+            release:   !!pg.release_signed,
+            emergency: !!pg.emergency_signed
+          };
+        } else {
+          C = sc || {};
+        }
+        // Always apply the completed doc from URL — this is the most current signal
+        if (completedDoc) {
+          C[completedDoc] = true;
+          // Also save to Supabase in background to make sure it's recorded
+          dbMarkDone(P.email, completedDoc);
+        }
+        lSave('cb_p', P); lSave('cb_c', C);
+        go('sh'); buildHub();
+      } else if (sp && sp.fullName) {
+        // Supabase load failed — use localStorage
+        P = sp;
+        C = sc || {};
+        if (completedDoc) { C[completedDoc] = true; lSave('cb_c', C); }
+        go('sh'); buildHub();
+      } else {
+        go('sw');
+      }
+    });
+    return;
+  }
+
+  // No email param — check localStorage for returning user on same device
+  if (sp && sp.fullName) {
+    P = sp; C = sc || {};
+    if (completedDoc) { C[completedDoc] = true; lSave('cb_c', C); }
+    go('sh'); buildHub();
+  } else {
+    go('sw');
+  }
+});
+</script>
+</body>
+</html>

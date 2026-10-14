@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cio Bela — W-9 Tax Information</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--ink:#181410;--cream:#F8F4EF;--warm:#EDE5D8;--gold:#B5924A;--gold2:#D4AE72;--mid:#6B5C48;--border:#D8CBBA;--alert:#7A3B1E;--alert-bg:#FDF0E8;--info:#1B4D6B;--info-bg:#EBF4FA;--green:#2A5C3F;--green-bg:#EBF5EF;--white:#FFFFFF;}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);}
+
+header{background:var(--cream);padding:1000px 24px 40px;text-align:center;border-bottom:2px solid var(--gold);}
+.h-brand{font-family:'Cormorant Garamond',serif;font-size:clamp(20px,4vw,28px);font-weight:300;letter-spacing:.22em;text-transform:uppercase;color:var(--ink);}
+.h-sub{font-size:10px;letter-spacing:.26em;text-transform:uppercase;color:var(--mid);margin-top:6px;font-weight:300;}
+
+#prog-wrap{background:var(--warm);border-bottom:1px solid var(--border);padding:12px 20px;}
+.prog-inner{max-width:680px;margin:0 auto;}
+.prog-bar-bg{height:3px;background:var(--border);border-radius:2px;margin-bottom:7px;}
+.prog-bar-fill{height:3px;background:var(--gold);border-radius:2px;transition:width .4s ease;}
+.prog-label{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mid);display:flex;justify-content:space-between;}
+
+.wrap{max-width:680px;margin:0 auto;padding:40px 20px 600px;}
+.page{display:none;}.page.active{display:block;}
+
+.pg-head{margin-bottom:36px;padding-bottom:24px;border-bottom:1px solid var(--border);}
+.pg-eyebrow{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:500;margin-bottom:8px;}
+.pg-title{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,5vw,38px);font-weight:400;color:var(--ink);line-height:1.2;margin-bottom:10px;}
+.pg-sub{font-size:13px;color:var(--mid);font-weight:300;line-height:1.75;}
+
+.instr{border-radius:0 4px 4px 0;padding:14px 18px;margin-bottom:18px;font-size:13px;line-height:1.7;}
+.instr.info{background:var(--info-bg);border-left:3px solid var(--info);color:var(--info);}
+.instr.warn{background:var(--alert-bg);border-left:3px solid var(--alert);color:var(--alert);}
+.instr.good{background:var(--green-bg);border-left:3px solid var(--green);color:var(--green);}
+.instr strong{font-weight:600;}
+
+.fg{margin-bottom:28px;}
+.fg label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mid);margin-bottom:6px;font-weight:500;}
+.fg .hint{font-size:12px;color:var(--mid);margin-bottom:8px;font-weight:300;line-height:1.6;}
+.fg input,.fg select{width:100%;background:var(--white);border:1px solid var(--border);border-radius:3px;padding:13px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus{border-color:var(--gold);}
+.fg input.invalid{border-color:var(--alert)!important;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:520px){.g2,.g3{grid-template-columns:1fr;}}
+
+.class-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(185px,1fr));gap:10px;margin-bottom:6px;}
+.class-card{border:1.5px solid var(--border);border-radius:4px;padding:16px;cursor:pointer;transition:all .22s;background:var(--white);}
+.class-card.selected{border-color:var(--gold);background:#FFFBF5;}
+.cc-letter{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--border);margin-bottom:4px;transition:color .2s;}
+.class-card.selected .cc-letter{color:var(--gold);}
+.cc-name{font-size:12px;font-weight:500;color:var(--ink);}
+.cc-desc{font-size:11px;color:var(--mid);margin-top:3px;font-weight:300;line-height:1.4;}
+
+.tin-row{display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;}
+.tin-opt{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink);cursor:pointer;}
+.tin-opt input{accent-color:var(--gold);}
+
+.review-block{background:var(--ink);color:var(--cream);border-radius:4px;padding:24px 28px;margin-bottom:24px;}
+.r-row{display:flex;gap:10px;margin-bottom:10px;font-size:13px;}
+.r-lbl{font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:var(--gold2);min-width:140px;padding-top:2px;}
+.r-val{color:var(--cream);font-weight:300;}
+
+.sig-wrap{background:var(--white);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-top:6px;}
+.sig-top{background:var(--warm);padding:10px 16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mid);font-weight:500;}
+canvas#sigPad{display:block;width:100%;height:150px;cursor:crosshair;touch-action:none;background:#fff;}
+.sig-bar{display:flex;justify-content:flex-end;padding:8px 12px;border-top:1px solid var(--border);}
+.btn-clr{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--mid);background:none;border:1px solid var(--border);padding:6px 14px;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif;}
+
+.btn-row{display:flex;gap:12px;margin-top:36px;flex-wrap:wrap;}
+.btn-p{background:var(--gold);color:#fff;border:none;padding:15px 38px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:.22em;text-transform:uppercase;font-weight:500;cursor:pointer;border-radius:2px;}
+.btn-s{background:transparent;color:var(--mid);border:1px solid var(--border);padding:15px 26px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:.18em;text-transform:uppercase;cursor:pointer;border-radius:2px;}
+
+hr.div{border:none;border-top:1px solid var(--border);margin:24px 0;}
+
+#success{display:none;text-align:center;padding:60px 20px;background:var(--cream);}
+.s-icon{width:68px;height:68px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:28px;color:#fff;}
+.s-title{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:400;margin-bottom:14px;color:var(--ink);}
+.s-body{font-size:14px;color:var(--mid);line-height:1.8;font-weight:300;max-width:460px;margin:0 auto 8px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-brand">Cio Bela</div>
+  <div class="h-sub">W-9 · Taxpayer Identification &amp; Certification</div>
+</header>
+
+<div id="prog-wrap">
+  <div class="prog-inner">
+    <div class="prog-bar-bg"><div class="prog-bar-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="prog-label"><span id="prog-step">Step 1 of 5</span><span id="prog-name">Your Name</span></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+<!-- PAGE 0 -->
+<div class="page active" id="page-0">
+  <div class="pg-head">
+    <div class="pg-eyebrow">IRS Form W-9</div>
+    <h1 class="pg-title">Taxpayer Identification &amp; Certification</h1>
+    <p class="pg-sub">This guided form walks you through each W-9 field with plain-English instructions. Your answers generate a properly formatted W-9 PDF at the end.</p>
+  </div>
+  <div class="instr good"><strong>Why Cio Bela needs this:</strong> As an independent contractor, you may receive a 1099-NEC at year end if you earn $600 or more. The IRS requires Cio Bela to have your legal name, address, and Tax ID on file before processing any payments.</div>
+  <div class="instr warn"><strong>⚠ Security notice:</strong> Your SSN or EIN is submitted directly to Cio Bela management only.</div>
+  <div class="instr info"><strong>How this works:</strong> 5 short sections. At the end, download your W-9 PDF and email it to ciobelasalons@yahoo.com.</div>
+  <hr class="div">
+  <div class="fg">
+    <label>Full Legal Name <span style="color:var(--alert)">*</span></label>
+    <div class="hint">Enter your name exactly as it appears on your federal tax return.</div>
+    <input type="text" id="p0-name" placeholder="First Middle Last">
+  </div>
+  <div class="fg">
+    <label>Business Name / DBA <span style="color:var(--mid);font-size:9px;">(optional)</span></label>
+    <div class="hint">Only complete this if you operate under a business name different from your legal name. Leave blank if you just use your own name.</div>
+    <input type="text" id="p0-biz" placeholder="Business name or DBA (if different from above)">
+  </div>
+  <div class="btn-row"><button class="btn-p" onclick="goTo(1)">Continue &rarr;</button></div>
+</div>
+
+<!-- PAGE 1 -->
+<div class="page" id="page-1">
+  <div class="pg-head">
+    <div class="pg-eyebrow">Section 2</div>
+    <h1 class="pg-title">Federal Tax Classification</h1>
+    <p class="pg-sub">Select how your business is set up for tax purposes. Most independent hair stylists choose <strong>Individual / Sole Proprietor.</strong></p>
+  </div>
+  <div class="instr info"><strong>Not sure which to pick?</strong> If you file taxes under your own Social Security Number and don't have a formal business entity registered with the state, select <strong>Individual / Sole Proprietor.</strong></div>
+  <div class="class-grid">
+    <div class="class-card" onclick="selectClass(this,'I')"><div class="cc-letter">I</div><div class="cc-name">Individual / Sole Proprietor</div><div class="cc-desc">You file under your own SSN. Most common for independent contractors.</div></div>
+    <div class="class-card" onclick="selectClass(this,'C')"><div class="cc-letter">C</div><div class="cc-name">C Corporation</div><div class="cc-desc">Business incorporated as a C-Corp with the IRS.</div></div>
+    <div class="class-card" onclick="selectClass(this,'S')"><div class="cc-letter">S</div><div class="cc-name">S Corporation</div><div class="cc-desc">Business has elected S-Corp status with the IRS.</div></div>
+    <div class="class-card" onclick="selectClass(this,'P')"><div class="cc-letter">P</div><div class="cc-name">Partnership</div><div class="cc-desc">Two or more people co-own the business.</div></div>
+    <div class="class-card" onclick="selectClass(this,'T')"><div class="cc-letter">T</div><div class="cc-name">Trust / Estate</div><div class="cc-desc">The entity is a trust or estate filing separately.</div></div>
+    <div class="class-card" onclick="selectClass(this,'L')"><div class="cc-letter">L</div><div class="cc-name">LLC</div><div class="cc-desc">You have a registered LLC — specify tax treatment below.</div></div>
+    <div class="class-card" onclick="selectClass(this,'O')"><div class="cc-letter">O</div><div class="cc-name">Other</div><div class="cc-desc">Other entity type — describe in the field below.</div></div>
+  </div>
+  <div id="llc-row" style="display:none;margin-top:16px;">
+    <div class="fg"><label>LLC Tax Classification</label>
+      <select id="llc-tax">
+        <option value="">Disregarded entity (single-member, no election made)</option>
+        <option value="C">C — Taxed as C Corporation</option>
+        <option value="S">S — Taxed as S Corporation</option>
+        <option value="P">P — Taxed as Partnership</option>
+      </select>
+    </div>
+  </div>
+  <div id="other-row" style="display:none;margin-top:16px;">
+    <div class="fg"><label>Describe Entity Type</label><input type="text" id="other-type" placeholder="e.g. Nonprofit, Cooperative, etc."></div>
+  </div>
+  <hr class="div">
+  <div class="fg">
+    <label>Exempt Payee Code <span style="color:var(--mid);font-size:9px;">(most contractors leave blank)</span></label>
+    <div class="hint">Applies only to entities exempt from backup withholding. <strong>If you are an individual or sole proprietor, leave both fields blank.</strong></div>
+    <div class="g2">
+      <input type="text" id="exempt-code" placeholder="Exempt payee code (if any)">
+      <input type="text" id="exempt-fatca" placeholder="FATCA exemption code (if any)">
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn-s" onclick="goTo(0)">&larr; Back</button>
+    <button class="btn-p" onclick="goTo(2)">Continue &rarr;</button>
+  </div>
+</div>
+
+<!-- PAGE 2 -->
+<div class="page" id="page-2">
+  <div class="pg-head">
+    <div class="pg-eyebrow">Section 3</div>
+    <h1 class="pg-title">Your Address</h1>
+    <p class="pg-sub">Enter the address where you want the IRS and Cio Bela to send tax documents, including your 1099-NEC at year end.</p>
+  </div>
+  <div class="instr info"><strong>Use your home or business mailing address</strong> — whichever is associated with your tax return.</div>
+  <div class="fg">
+    <label>Street Address <span style="color:var(--alert)">*</span></label>
+    <div class="hint">Include your apartment, suite, or unit number if applicable.</div>
+    <input type="text" id="p2-street" placeholder="123 Main St, Apt 4B">
+  </div>
+  <div class="g3">
+    <div class="fg"><label>City <span style="color:var(--alert)">*</span></label><input type="text" id="p2-city" placeholder="City"></div>
+    <div class="fg"><label>State <span style="color:var(--alert)">*</span></label>
+      <select id="p2-state">
+        <option value="">— State —</option>
+        <option>TX</option><option>AL</option><option>AK</option><option>AZ</option><option>AR</option><option>CA</option><option>CO</option><option>CT</option><option>DE</option><option>FL</option><option>GA</option><option>HI</option><option>ID</option><option>IL</option><option>IN</option><option>IA</option><option>KS</option><option>KY</option><option>LA</option><option>ME</option><option>MD</option><option>MA</option><option>MI</option><option>MN</option><option>MS</option><option>MO</option><option>MT</option><option>NE</option><option>NV</option><option>NH</option><option>NJ</option><option>NM</option><option>NY</option><option>NC</option><option>ND</option><option>OH</option><option>OK</option><option>OR</option><option>PA</option><option>RI</option><option>SC</option><option>SD</option><option>TN</option><option>UT</option><option>VT</option><option>VA</option><option>WA</option><option>WV</option><option>WI</option><option>WY</option>
+      </select>
+    </div>
+    <div class="fg"><label>ZIP Code <span style="color:var(--alert)">*</span></label><input type="text" id="p2-zip" placeholder="XXXXX" maxlength="10"></div>
+  </div>
+  <div class="fg">
+    <label>Requester (Pre-filled)</label>
+    <input type="text" value="Cio Bela — Multi Service Salon, Spa & Wellness Center LLC · 27327 Robinson Rd., Suites 3 & 4, Oak Ridge North, TX 77385" readonly style="background:var(--warm);color:var(--mid);font-size:12px;">
+  </div>
+  <div class="fg">
+    <label>Account / Reference Number <span style="color:var(--mid);font-size:9px;">(optional)</span></label>
+    <input type="text" id="p2-acct" placeholder="Optional">
+  </div>
+  <div class="btn-row">
+    <button class="btn-s" onclick="goTo(1)">&larr; Back</button>
+    <button class="btn-p" onclick="goTo(3)">Continue &rarr;</button>
+  </div>
+</div>
+
+<!-- PAGE 3 -->
+<div class="page" id="page-3">
+  <div class="pg-head">
+    <div class="pg-eyebrow">Section 4 — Most Important</div>
+    <h1 class="pg-title">Taxpayer Identification Number</h1>
+    <p class="pg-sub">Provide either your Social Security Number (SSN) or Employer Identification Number (EIN) — not both.</p>
+  </div>
+  <div class="instr info"><strong>SSN vs. EIN — which do I use?</strong><br><br>
+    • <strong>SSN</strong> — Use this if you're an individual, sole proprietor, or single-member LLC filing under your own name. Most common for independent contractors.<br><br>
+    • <strong>EIN</strong> — Use this if you have a registered business entity with its own IRS-issued EIN.<br><br>
+    <strong>When in doubt: use your SSN.</strong>
+  </div>
+  <div class="fg">
+    <label>TIN Type <span style="color:var(--alert)">*</span></label>
+    <div class="tin-row">
+      <label class="tin-opt"><input type="radio" name="tin-type" value="SSN" onchange="tinToggle()"> Social Security Number (SSN)</label>
+      <label class="tin-opt"><input type="radio" name="tin-type" value="EIN" onchange="tinToggle()"> Employer Identification Number (EIN)</label>
+    </div>
+  </div>
+  <div id="ssn-row" style="display:none;">
+    <div class="fg"><label>Social Security Number <span style="color:var(--alert)">*</span></label><div class="hint">Format: XXX-XX-XXXX</div><input type="text" id="tin-ssn" placeholder="XXX-XX-XXXX" maxlength="11" autocomplete="off" oninput="fmtSSN(this)"></div>
+  </div>
+  <div id="ein-row" style="display:none;">
+    <div class="fg"><label>Employer Identification Number <span style="color:var(--alert)">*</span></label><div class="hint">Format: XX-XXXXXXX</div><input type="text" id="tin-ein" placeholder="XX-XXXXXXX" maxlength="10" autocomplete="off" oninput="fmtEIN(this)"></div>
+  </div>
+  <div class="instr good"><strong>Don't have an EIN?</strong> Most sole proprietors should simply use their SSN — no EIN needed.</div>
+  <div class="btn-row">
+    <button class="btn-s" onclick="goTo(2)">&larr; Back</button>
+    <button class="btn-p" onclick="goTo(4)">Continue &rarr;</button>
+  </div>
+</div>
+
+<!-- PAGE 4 -->
+<div class="page" id="page-4">
+  <div class="pg-head">
+    <div class="pg-eyebrow">Section 5 — Final Step</div>
+    <h1 class="pg-title">Certification &amp; Signature</h1>
+    <p class="pg-sub">Review your information, read the certification, and sign.</p>
+  </div>
+  <div class="review-block" id="review-block"></div>
+  <div class="instr warn">
+    <strong>⚠ Under penalties of perjury</strong> — by signing this W-9 you certify that:<br><br>
+    1. The TIN you provided is your correct taxpayer identification number.<br>
+    2. You are not subject to backup withholding.<br>
+    3. You are a U.S. citizen or other U.S. person as defined by the IRS.<br>
+    4. The FATCA exemption code entered (if any) is correct.
+  </div>
+  <div style="margin-bottom:24px;">
+    <label style="display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:13px;font-weight:300;line-height:1.65;color:var(--ink);">
+      <input type="checkbox" id="backup-chk" style="accent-color:var(--gold);margin-top:3px;min-width:16px;">
+      I have been notified by the IRS that I am currently subject to backup withholding. <em>(Most people do NOT check this.)</em>
+    </label>
+  </div>
+  <div class="fg"><label>Full Legal Name — Type to Confirm <span style="color:var(--alert)">*</span></label><input type="text" id="sig-name" placeholder="Type your full legal name exactly"></div>
+  <div class="g2">
+    <div class="fg"><label>Phone Number <span style="color:var(--alert)">*</span></label><input type="tel" id="sig-phone" placeholder="(xxx) xxx-xxxx"></div>
+    <div class="fg"><label>Email Address <span style="color:var(--alert)">*</span></label><input type="email" id="sig-email" placeholder="your@email.com"></div>
+  </div>
+  <div class="fg"><label>Signing Date</label><input type="text" id="sig-date" readonly></div>
+  <div class="sig-wrap">
+    <div class="sig-top">Draw Your Signature Below</div>
+    <canvas id="sigPad"></canvas>
+    <div class="sig-bar"><button class="btn-clr" onclick="clearSig()">Clear</button></div>
+  </div>
+  <div class="instr good" style="margin-top:18px;">This electronic signature is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA).</div>
+  <div class="btn-row">
+    <button class="btn-s" onclick="goTo(3)">&larr; Back</button>
+    <button class="btn-p" onclick="submitW9()">Submit W-9</button>
+  </div>
+</div>
+
+</div><!-- /wrap -->
+
+<!-- SUCCESS -->
+<div id="success">
+  <div class="s-icon">✓</div>
+  <h2 class="s-title">W-9 Signed!</h2>
+  <p class="s-body">Your completion has been recorded. Now do these two steps:</p>
+  <div style="background:#2D2520;border-radius:4px;padding:20px 24px;max-width:400px;margin:20px auto;text-align:left;">
+    <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#D4AE72;margin-bottom:12px;font-weight:600;">Step 1 of 2</p>
+    <p style="font-size:14px;color:#F8F4EF;margin-bottom:16px;line-height:1.6;">Tap the button below to download your signed PDF.</p>
+    <button onclick="generatePDF()" style="display:block;width:100%;background:#B5924A;color:#fff;border:none;padding:16px 32px;font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;">⬇ Download My Signed PDF</button>
+  </div>
+  <div style="background:#F8F4EF;border:1px solid #D8CBBA;border-radius:4px;padding:20px 24px;max-width:400px;margin:16px auto;text-align:left;">
+    <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B5924A;margin-bottom:10px;font-weight:600;">Step 2 of 2</p>
+    <p style="font-size:13px;color:#6B5C48;line-height:1.75;">Email the PDF you just downloaded to:<br><strong style="color:#181410;font-size:15px;">ciobelasalons@yahoo.com</strong></p>
+  </div>
+  <button onclick="returnToHub()" style="display:block;width:100%;max-width:400px;margin:20px auto 12px;background:#2D5A3D;color:#fff;border:none;padding:18px 32px;font-family:'DM Sans',sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:3px;">← Return to Onboarding Checklist</button>
+  <p style="font-size:11px;color:#A0927E;text-align:center;max-width:360px;margin:0 auto 40px;">Complete steps 1 and 2 before returning to the checklist.</p>
+</div>
+
+<script>
+  var cur = 0;
+  var PAGES = ['Your Name','Tax Classification','Address','Tax ID Number','Certification'];
+  var selClass = '';
+  var hasSig = false, drawing = false;
+  var sc, sx;
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+  var timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
+  var classNames = {I:'Individual / Sole Proprietor',C:'C Corporation',S:'S Corporation',P:'Partnership',T:'Trust / Estate',L:'LLC',O:'Other'};
+
+  window.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('sig-date').value = dateStr;
+    updProg();
+    initSig();
+    autoFill();
+  });
+
+  function updProg() {
+    document.getElementById('prog-fill').style.width = (cur / (PAGES.length-1) * 100) + '%';
+    document.getElementById('prog-step').textContent = 'Step ' + (cur+1) + ' of ' + PAGES.length;
+    document.getElementById('prog-name').textContent = PAGES[cur];
+  }
+
+  function goTo(n) {
+    if (n > cur && !validate(cur)) return;
+    document.getElementById('page-'+cur).classList.remove('active');
+    cur = n;
+    document.getElementById('page-'+n).classList.add('active');
+    updProg();
+    if (n === 4) buildReview();
+    try { window.scrollTo(0,0); } catch(e) {}
+    try { document.documentElement.scrollTop=0; } catch(e) {}
+    try { document.body.scrollTop=0; } catch(e) {}
+  }
+
+  function selectClass(el, code) {
+    document.querySelectorAll('.class-card').forEach(function(c){ c.classList.remove('selected'); });
+    el.classList.add('selected');
+    selClass = code;
+    document.getElementById('llc-row').style.display = code==='L' ? 'block' : 'none';
+    document.getElementById('other-row').style.display = code==='O' ? 'block' : 'none';
+  }
+
+  function tinToggle() {
+    var v = document.querySelector('input[name="tin-type"]:checked');
+    var val = v ? v.value : '';
+    document.getElementById('ssn-row').style.display = val==='SSN' ? 'block' : 'none';
+    document.getElementById('ein-row').style.display = val==='EIN' ? 'block' : 'none';
+  }
+
+  function fmtSSN(el) {
+    var v = el.value.replace(/\D/g,'').substring(0,9);
+    if (v.length>5) v=v.slice(0,3)+'-'+v.slice(3,5)+'-'+v.slice(5);
+    else if (v.length>3) v=v.slice(0,3)+'-'+v.slice(3);
+    el.value = v;
+  }
+  function fmtEIN(el) {
+    var v = el.value.replace(/\D/g,'').substring(0,9);
+    if (v.length>2) v=v.slice(0,2)+'-'+v.slice(2);
+    el.value = v;
+  }
+
+  function req(id) {
+    var el = document.getElementById(id);
+    if (!el) return true;
+    var ok = !!el.value.trim();
+    el.classList.toggle('invalid', !ok);
+    return ok;
+  }
+
+  function validate(p) {
+    if (p===0) { if (!req('p0-name')) { alert('Please enter your full legal name.'); return false; } }
+    if (p===1) { if (!selClass) { alert('Please select your federal tax classification.'); return false; } }
+    if (p===2) {
+      var ok = ['p2-street','p2-city','p2-zip'].every(function(id){ return req(id); });
+      if (!document.getElementById('p2-state').value) ok = false;
+      if (!ok) { alert('Please complete all address fields.'); return false; }
+    }
+    if (p===3) {
+      var checked = document.querySelector('input[name="tin-type"]:checked');
+      if (!checked) { alert('Please select SSN or EIN.'); return false; }
+      if (checked.value==='SSN' && document.getElementById('tin-ssn').value.replace(/\D/g,'').length!==9) {
+        document.getElementById('tin-ssn').classList.add('invalid'); alert('Please enter a valid 9-digit SSN.'); return false;
+      }
+      if (checked.value==='EIN' && document.getElementById('tin-ein').value.replace(/\D/g,'').length!==9) {
+        document.getElementById('tin-ein').classList.add('invalid'); alert('Please enter a valid 9-digit EIN.'); return false;
+      }
+    }
+    return true;
+  }
+
+  function buildReview() {
+    var checked = document.querySelector('input[name="tin-type"]:checked');
+    var tinType = checked ? checked.value : '—';
+    var tin = tinType==='SSN' ? document.getElementById('tin-ssn').value : document.getElementById('tin-ein').value;
+    var masked = tin ? tin.slice(0,-4).replace(/\d/g,'•')+tin.slice(-4) : '—';
+    var rows = [
+      ['Legal Name', document.getElementById('p0-name').value],
+      ['Business / DBA', document.getElementById('p0-biz').value || '(none)'],
+      ['Tax Classification', classNames[selClass]||'—'],
+      ['Address', document.getElementById('p2-street').value+', '+document.getElementById('p2-city').value+', '+document.getElementById('p2-state').value+' '+document.getElementById('p2-zip').value],
+      ['TIN Type', tinType],
+      ['TIN (last 4 shown)', masked],
+      ['Date', dateStr],
+    ];
+    document.getElementById('review-block').innerHTML = rows.map(function(r){
+      return '<div class="r-row"><span class="r-lbl">'+r[0]+'</span><span class="r-val">'+r[1]+'</span></div>';
+    }).join('');
+  }
+
+  function initSig() {
+    sc = document.getElementById('sigPad');
+    sx = sc.getContext('2d');
+    sc.width = sc.parentElement ? sc.parentElement.offsetWidth || 340 : 340;
+    sc.height = 150;
+    sx.strokeStyle = '#181410'; sx.lineWidth = 2.5; sx.lineCap = 'round'; sx.lineJoin = 'round';
+    var pos = function(e){ var r=sc.getBoundingClientRect(); var s=e.touches?e.touches[0]:e; return{x:s.clientX-r.left,y:s.clientY-r.top}; };
+    sc.addEventListener('mousedown',function(e){drawing=true;var p=pos(e);sx.beginPath();sx.moveTo(p.x,p.y);});
+    sc.addEventListener('mousemove',function(e){if(!drawing)return;hasSig=true;var p=pos(e);sx.lineTo(p.x,p.y);sx.stroke();});
+    sc.addEventListener('mouseup',function(){drawing=false;});
+    sc.addEventListener('mouseleave',function(){drawing=false;});
+    sc.addEventListener('touchstart',function(e){e.preventDefault();drawing=true;var p=pos(e);sx.beginPath();sx.moveTo(p.x,p.y);},{passive:false});
+    sc.addEventListener('touchmove',function(e){e.preventDefault();if(!drawing)return;hasSig=true;var p=pos(e);sx.lineTo(p.x,p.y);sx.stroke();},{passive:false});
+    sc.addEventListener('touchend',function(){drawing=false;});
+  }
+  function clearSig(){ sx.clearRect(0,0,sc.width,sc.height); hasSig=false; }
+
+  function autoFill() {
+    var set = function(id,val){ var el=document.getElementById(id); if(el&&val) el.value=val; };
+    function fill(p) {
+      set('p0-name', p.full_name||p.fullName||'');
+      set('p2-street', p.address||'');
+      set('sig-phone', p.phone||'');
+      set('sig-email', p.email||'');
+      set('sig-name', p.full_name||p.fullName||'');
+    }
+    try {
+      var cp = JSON.parse(sessionStorage.getItem('cb_prefill')||'null');
+      if (cp) { fill({full_name:cp.fullName,address:cp.address,phone:cp.phone,email:cp.email}); return; }
+    } catch(e) {}
+    var em = new URLSearchParams(window.location.search).get('email');
+    if (em && window.supabase) {
+      var db = window.supabase.createClient('https://cphlvgsneukrrzyajikb.supabase.co','sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC');
+      db.from('contractor_profiles').select('*').eq('email',em.toLowerCase().trim()).then(function(r){
+        if (r.data && r.data.length>0) fill(r.data[0]);
+      });
+    }
+  }
+
+  async function submitW9() {
+    if (!document.getElementById('sig-name').value.trim()) { alert('Please type your full legal name.'); return; }
+    if (!document.getElementById('sig-phone').value.trim()) { alert('Please enter your phone number.'); return; }
+    if (!document.getElementById('sig-email').value.trim()) { alert('Please enter your email address.'); return; }
+    if (!hasSig) { alert('Please draw your signature before submitting.'); return; }
+
+    var email = document.getElementById('sig-email').value.trim().toLowerCase();
+
+    if (email && window.supabase) {
+      try {
+        var db = window.supabase.createClient('https://cphlvgsneukrrzyajikb.supabase.co','sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC');
+        var current = await db.from('contractor_progress').select('*').eq('contractor_email',email);
+        var total = 0;
+        if (current.data && current.data.length>0) {
+          var row = current.data[0]; row['w9_signed']=true;
+          var allF=['contract_signed','payment_signed','w9_signed','standards_signed','id_uploaded','release_signed','emergency_signed'];
+          total = allF.filter(function(f){return !!row[f];}).length;
+        }
+        await db.from('contractor_progress').update({w9_signed:true,total_complete:total,onboarding_done:total>=6}).eq('contractor_email',email);
+      } catch(e) { console.error('Supabase error:',e); }
+    }
+
+    document.getElementById('prog-wrap').style.display = 'none';
+    document.querySelector('.wrap').style.display = 'none';
+    document.getElementById('success').style.display = 'block';
+    try { window.scrollTo(0,0); } catch(e) {}
+    try { document.documentElement.scrollTop=0; } catch(e) {}
+    try { document.body.scrollTop=0; } catch(e) {}
+  }
+
+  async function generatePDF() {
+    var name=document.getElementById('p0-name').value.trim();
+    var biz=document.getElementById('p0-biz').value.trim();
+    var addr=document.getElementById('p2-street').value.trim();
+    var city=document.getElementById('p2-city').value.trim();
+    var state=document.getElementById('p2-state').value;
+    var zip=document.getElementById('p2-zip').value.trim();
+    var acct=document.getElementById('p2-acct').value.trim();
+    var checked=document.querySelector('input[name="tin-type"]:checked');
+    var tinType=checked?checked.value:'';
+    var ssn=document.getElementById('tin-ssn').value;
+    var ein=document.getElementById('tin-ein').value;
+    var bkup=document.getElementById('backup-chk')?document.getElementById('backup-chk').checked:false;
+    var sigName=document.getElementById('sig-name').value.trim();
+    var phone=document.getElementById('sig-phone').value.trim();
+    var email=document.getElementById('sig-email').value.trim();
+    var sigImg=sc?sc.toDataURL('image/png'):'';
+
+    try {
+      var jsPDF=window.jspdf.jsPDF;
+      var doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+      var W=215.9,H=279.4,M=14,CW=W-M*2;
+      var gold=[181,146,74],ink=[24,20,16],mid=[107,92,72],warm=[237,229,216],cream=[248,244,239],red=[122,59,30],white=[255,255,255];
+
+      doc.setFillColor(...cream); doc.rect(0,0,W,H,'F');
+      doc.setFillColor(...ink); doc.rect(0,0,W,30,'F');
+      doc.setFontSize(22); doc.setFont('helvetica','bold'); doc.setTextColor(...gold); doc.text('W-9',M,14);
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(210,195,175);
+      doc.text('Request for Taxpayer',M,19); doc.text('Identification Number and Certification',M,23.5);
+      doc.setFontSize(8.5); doc.setTextColor(...gold); doc.text('Cio Bela — Multi Service Salon, Spa & Wellness Center LLC',W-M,20,{align:'right'});
+      doc.setFontSize(7); doc.setTextColor(140,122,100); doc.text('27327 Robinson Rd., Suites 3 & 4, Oak Ridge North, TX 77385',W-M,25.5,{align:'right'});
+
+      var y=36;
+      doc.setDrawColor(...gold); doc.setLineWidth(0.5); doc.line(M,y,W-M,y); y+=5;
+
+      function lineField(num,lbl,val,yy,h){
+        doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text(num+'  '+lbl,M,yy);
+        doc.setDrawColor(...mid); doc.setLineWidth(0.2); doc.rect(M,yy+1,CW,h);
+        doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(val||'',M+2,yy+h-1.5);
+        return yy+h+4;
+      }
+
+      y=lineField('1','Name (as shown on your income tax return)',name,y,10);
+      y=lineField('2','Business name/disregarded entity name, if different from above',biz||'',y,10);
+      y=lineField('3','Federal tax classification: '+(classNames[selClass]||'—'),'' ,y,10);
+      y=lineField('5','Address (number, street, and apt. or suite no.)',addr,y,10);
+      y=lineField('6','City, state, and ZIP code',city+', '+state+' '+zip,y,10);
+      y=lineField('7','List account number(s) here (optional)',acct||'',y,9);
+      y+=3;
+      doc.setDrawColor(...gold); doc.setLineWidth(0.5); doc.line(M,y,W-M,y); y+=4;
+
+      doc.setFillColor(...gold); doc.rect(M,y,CW,7,'F');
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...white);
+      doc.text('Part I    Taxpayer Identification Number (TIN)',M+3,y+5); y+=9;
+
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+      var tiL=doc.splitTextToSize('Enter your TIN in the appropriate box. The TIN provided must match the name given on line 1 to avoid backup withholding.',CW/2-4);
+      doc.text(tiL,M,y+3);
+      var bx=M+CW/2+6;
+      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('Social security number',bx,y+3);
+      doc.setDrawColor(...mid); doc.setLineWidth(0.35); doc.rect(bx,y+4,58,9);
+      if(tinType==='SSN'){doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(ssn,bx+2,y+11);}
+      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('or',bx+60,y+9);
+      doc.text('Employer identification number',bx,y+18);
+      doc.setDrawColor(...mid); doc.setLineWidth(0.35); doc.rect(bx,y+19,58,9);
+      if(tinType==='EIN'){doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(ein,bx+2,y+26);}
+      y+=34;
+
+      doc.setDrawColor(...gold); doc.setLineWidth(0.5); doc.line(M,y,W-M,y); y+=4;
+      doc.setFillColor(...gold); doc.rect(M,y,CW,7,'F');
+      doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...white); doc.text('Part II    Certification',M+3,y+5); y+=9;
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+      var certL=doc.splitTextToSize('Under penalties of perjury, I certify that: (1) The number shown on this form is my correct taxpayer identification number; (2) I am not subject to backup withholding; (3) I am a U.S. citizen or other U.S. person; and (4) The FATCA code(s) entered on this form (if any) is correct.',CW);
+      doc.text(certL,M,y); y+=certL.length*3.8+5;
+
+      if(bkup){
+        doc.setFillColor(253,240,232); doc.rect(M,y,CW,8,'F');
+        doc.setDrawColor(...red); doc.setLineWidth(0.3); doc.line(M,y,M,y+8);
+        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...red);
+        doc.text('Contractor has indicated they ARE subject to backup withholding.',M+4,y+5); y+=11;
+      }
+
+      y+=2;
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('Signature of U.S. person  ►',M,y+1); y+=3;
+      doc.setDrawColor(...mid); doc.setLineWidth(0.25); doc.rect(M,y,CW-50,24);
+      try{doc.addImage(sigImg,'PNG',M+1,y+1,CW-52,22);}catch(e){}
+      doc.rect(W-M-48,y,48,24);
+      doc.setFontSize(6.5); doc.setTextColor(...mid); doc.text('Date',W-M-46,y+4);
+      doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(dateStr,W-M-46,y+11);
+      doc.setFontSize(7); doc.setTextColor(...mid); doc.text(timeStr,W-M-46,y+17);
+      y+=28;
+
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('PRINT FULL LEGAL NAME',M,y);
+      doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(sigName,M,y+5);
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('PHONE',M+CW/2,y);
+      doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(phone,M+CW/2,y+5);
+      y+=12;
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('EMAIL ADDRESS',M,y);
+      doc.setFontSize(10); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(email,M,y+5);
+      y+=12;
+
+      doc.setFillColor(...warm); doc.rect(M,y,CW,16,'F');
+      doc.setDrawColor(...mid); doc.setLineWidth(0.2); doc.rect(M,y,CW,16);
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('SUBMITTED TO (REQUESTER)',M+3,y+4.5);
+      doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text('Cio Bela — Multi Service Salon, Spa & Wellness Center LLC',M+3,y+9.5);
+      doc.setFontSize(7.5); doc.setTextColor(...mid); doc.text('27327 Robinson Rd., Suites 3 & 4, Oak Ridge North, TX 77385',M+3,y+14);
+
+      doc.setFillColor(...ink); doc.rect(0,H-10,W,10,'F');
+      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(...gold);
+      doc.text('Cio Bela — Contractor Tax Document  |  W-9 Taxpayer Identification & Certification',M,H-4.5);
+      doc.setTextColor(...mid); doc.text(dateStr,W-M,H-4.5,{align:'right'});
+
+      doc.save('CioBela-W9-'+name.replace(/\s+/g,'-')+'.pdf');
+    } catch(err){ console.error('PDF error:',err); alert('PDF generation failed. Please try again.'); }
+  }
+
+  function returnToHub() {
+    var email = document.getElementById('sig-email').value.trim();
+    var url = 'https://shawntyd.github.io/ciobela-hair-onboarding/cio-bela-hair-hub.html';
+    if (email) url += '?email='+encodeURIComponent(email)+'&completed=w9';
+    window.location.href = url;
+  }
+</script>
+</body>
+</html>

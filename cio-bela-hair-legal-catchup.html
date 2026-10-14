@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cio Bela — Hair Stylist Legal Agreements</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+  :root {
+    --cream: #F5F0E8; --ink: #1A1714; --gold: #C9A96E;
+    --gold-light: rgba(201,169,110,0.15); --warm-mid: #8C7B68;
+    --rule: rgba(201,169,110,0.3); --white: #FFFFFF;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--cream); color: var(--ink);
+    font-family: 'DM Mono', monospace; font-weight: 300;
+    min-height: 100vh; padding: 40px 20px 80px;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+
+  .page-header { border-bottom: 1px solid var(--rule); padding-bottom: 24px; margin-bottom: 32px; }
+  .page-tag { font-size: 9px; letter-spacing: 0.35em; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+  .page-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(26px,5vw,38px); font-weight: 300; line-height: 1.15; }
+  .page-title em { font-style: italic; color: var(--gold); }
+  .page-desc { margin-top: 12px; font-size: 11.5px; line-height: 1.75; color: var(--warm-mid); }
+
+  .field-group { margin-bottom: 24px; }
+  .field-label { display: block; font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--warm-mid); margin-bottom: 8px; }
+  .field-label .req { color: var(--gold); margin-left: 3px; }
+
+  input[type="text"], input[type="email"] {
+    width: 100%; background: var(--white);
+    border: 1px solid rgba(138,123,104,0.3); color: var(--ink);
+    font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 300;
+    padding: 13px 15px; outline: none; transition: border-color 0.2s;
+    -webkit-appearance: none; appearance: none; border-radius: 0;
+  }
+  input:focus { border-color: var(--gold); }
+
+  .policy-block {
+    background: var(--white); border: 1px solid var(--rule);
+    padding: 22px; margin-bottom: 22px; max-height: 340px; overflow-y: auto;
+  }
+  .policy-block::-webkit-scrollbar { width: 4px; }
+  .policy-block::-webkit-scrollbar-thumb { background: var(--gold); }
+  .ph { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--warm-mid); margin-bottom: 14px; }
+  .policy-block p { font-size: 11px; line-height: 1.75; color: var(--ink); margin-bottom: 10px; }
+  .pt { font-family: 'Cormorant Garamond', serif; font-size: 15px; font-weight: 600; margin: 18px 0 8px; color: var(--ink); }
+  .pt:first-child { margin-top: 0; }
+  .policy-block ul { list-style: none; padding: 0; margin-bottom: 10px; }
+  .policy-block ul li { font-size: 11px; line-height: 1.7; color: var(--ink); padding-left: 14px; position: relative; margin-bottom: 5px; }
+  .policy-block ul li::before { content: '—'; position: absolute; left: 0; color: var(--gold); font-size: 10px; }
+  .policy-block ol { padding-left: 18px; margin-bottom: 10px; }
+  .policy-block ol li { font-size: 11px; line-height: 1.7; color: var(--ink); margin-bottom: 5px; }
+  .policy-block strong { font-weight: 400; }
+
+  .section-divider { display: flex; align-items: center; gap: 12px; margin: 32px 0 18px; }
+  .section-divider span { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); white-space: nowrap; }
+  .section-divider::before, .section-divider::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+  .checkbox-wrap {
+    display: flex; gap: 14px; align-items: flex-start;
+    padding: 18px; background: var(--gold-light); border: 1px solid var(--rule);
+    margin-bottom: 24px; cursor: pointer;
+  }
+  .checkbox-wrap input[type="checkbox"] {
+    width: 18px; height: 18px; min-width: 18px;
+    border: 1px solid var(--gold); background: var(--white);
+    appearance: none; -webkit-appearance: none;
+    cursor: pointer; position: relative; margin-top: 2px; padding: 0;
+  }
+  .checkbox-wrap input[type="checkbox"]:checked { background: var(--gold); }
+  .checkbox-wrap input[type="checkbox"]:checked::after {
+    content: '✓'; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%,-50%); color: var(--white); font-size: 11px;
+  }
+  .checkbox-text { font-family: 'Cormorant Garamond', serif; font-size: 13px; font-style: italic; line-height: 1.65; color: var(--ink); }
+
+  .legal-statement {
+    background: var(--gold-light); border: 1px solid var(--rule);
+    padding: 20px; margin: 24px 0; font-size: 11px; line-height: 1.8; color: var(--ink);
+  }
+  .legal-statement strong { font-weight: 400; color: var(--ink); }
+
+  .sig-block { background: var(--white); border: 1px solid var(--rule); padding: 28px; margin-bottom: 24px; }
+  .sig-title { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+  .sig-desc { font-size: 11px; line-height: 1.75; color: var(--warm-mid); margin-bottom: 20px; }
+  .sig-canvas-wrap { position: relative; margin-bottom: 10px; }
+  #sig-canvas {
+    width: 100%; height: 140px; border: 1px solid rgba(138,123,104,0.4);
+    background: #FDFAF5; cursor: crosshair; display: block; touch-action: none;
+  }
+  .sig-clear {
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--warm-mid); background: none; border: none; cursor: pointer;
+    padding: 6px 0; text-decoration: underline;
+  }
+  .sig-clear:hover { color: var(--ink); }
+  .sig-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 20px; }
+  .sig-date { font-size: 11px; color: var(--warm-mid); margin-top: 8px; }
+
+  .btn-submit {
+    width: 100%; padding: 16px; background: var(--gold); border: 1px solid var(--gold); color: var(--ink);
+    font-family: 'DM Mono', monospace; font-size: 10px;
+    letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+    margin-top: 8px;
+  }
+  .btn-submit:hover { background: var(--ink); border-color: var(--ink); color: var(--gold); }
+  .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+  .btn-hub {
+    display: inline-block; margin-top: 24px; padding: 14px 28px;
+    background: var(--ink); color: var(--cream); text-decoration: none;
+    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  }
+
+  .success-screen { display: none; text-align: center; padding: 60px 20px; }
+  .success-screen.active { display: block; animation: rise 0.6s ease forwards; }
+  @keyframes rise { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .success-icon {
+    width: 56px; height: 56px; border: 1px solid var(--gold); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 28px; font-size: 22px; color: var(--gold);
+  }
+  .success-title { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 300; line-height: 1.15; margin-bottom: 16px; }
+  .success-title em { font-style: italic; color: var(--gold); }
+  .success-desc { font-size: 12px; color: var(--warm-mid); line-height: 1.75; max-width: 420px; margin: 0 auto; }
+  .success-note {
+    margin-top: 16px; color: var(--ink); font-size: 12.5px; background: var(--gold-light);
+    border: 1px solid var(--rule); padding: 16px; text-align: left; line-height: 1.8;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div id="form-wrap">
+    <div class="page-header">
+      <div class="page-tag">Documents 01–05</div>
+      <h1 class="page-title">Legal<br><em>Agreements</em></h1>
+      <p class="page-desc">These five agreements are a required part of your Cio Bela onboarding. Please read each one carefully, then confirm your acceptance and sign below.</p>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Full Legal Name <span class="req">*</span></label>
+      <input type="text" id="f-fullname" placeholder="Your legal full name">
+    </div>
+    <div class="field-group">
+      <label class="field-label">Email Address <span class="req">*</span></label>
+      <input type="email" id="f-email" placeholder="your@email.com">
+    </div>
+
+    <div class="section-divider"><span>Document 01</span></div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin-bottom:14px;">Shared Station Agreement</h2>
+    <div class="policy-block">
+      <p class="ph">The Collaborative Vision</p>
+      <p>We are building the hair department of Cio Bela together. This agreement is a living document intended to ensure that our shared salon floor remains professional, hygienic, and inspiring for every stylist who works within it. As we grow, we will refine these standards as a team.</p>
+
+      <p class="pt">1. Professionalism &amp; Aesthetic</p>
+      <ul>
+        <li><strong>Station Presentation:</strong> Each stylist is responsible for keeping their designated station organized, clean, and visually aligned with the salon's brand between and after all appointments.</li>
+        <li><strong>Noise &amp; Atmosphere:</strong> Blow dryers, clippers, and music are kept at a level that preserves a calm, welcoming environment for every client on the floor.</li>
+        <li><strong>Client Privacy:</strong> We commit to ensuring client privacy and dignity at all times, including discretion in all client conversations and communications.</li>
+      </ul>
+
+      <p class="pt">2. Shared Station Stewardship</p>
+      <ul>
+        <li><strong>Common Areas:</strong> The restroom, shampoo area, and waiting area are shared. We agree to "leave it better than we found it" to ensure a high-end experience for every guest.</li>
+        <li><strong>Hair Sweep:</strong> Cut hair must be swept up and disposed of after every client. No hair should be left on the floor, in shampoo bowls, or on shared surfaces for the next stylist.</li>
+        <li><strong>Shampoo Bowls:</strong> Rinse and wipe down the shampoo bowl, remove hair from drains, and wipe down the chair after every use.</li>
+        <li><strong>Color &amp; Chemical Cleanup:</strong> Color bowls, brushes, and applicator bottles must be rinsed and put away immediately. Color or bleach spills on counters, floors, or chairs must be wiped up right away to prevent staining.</li>
+      </ul>
+
+      <p class="pt">3. Logistics &amp; Access</p>
+      <ul>
+        <li><strong>Entry:</strong> Each stylist will have keyed access. We agree to ensure the building is fully secured and all non-essential lights and equipment are turned off when the last person leaves.</li>
+        <li><strong>Client Flow:</strong> We will respect the privacy of the floor. If a client arrives early, we will guide them to the designated waiting area until the stylist is ready to receive them.</li>
+        <li><strong>Guest Policy:</strong> Stylists must communicate their individual policies regarding children or extra guests to their clients in advance. Additional guests are generally discouraged at the station during services.</li>
+        <li><strong>Friends &amp; Family:</strong> To maintain a focused, professional environment, friends and family members of stylists are not permitted to occupy the salon unless they are present to receive a service.</li>
+      </ul>
+
+      <p class="pt">4. Supplies &amp; Inventory</p>
+      <ul>
+        <li><strong>Storage:</strong> Each stylist is allocated their own designated space for personal supply storage. Items left on shared surfaces or in common areas may be moved to ensure safety and cleanliness.</li>
+        <li><strong>Professional Tools:</strong> Each stylist is responsible for their own shears, clippers, razors, combs, brushes, flat irons, curling irons, and blow dryers, as well as the color, chemical, and styling products used on their own clients. Do not borrow another stylist's tools without permission.</li>
+        <li><strong>Shared Consumables:</strong> Capes, towels, neck strips, and cleaning supplies are shared, and the cost of replenishing them is divided equally among the active stylists. Shared laundry facilities are available for capes and towels; please move loads promptly.</li>
+        <li><strong>Heat Tools:</strong> Flat irons, curling irons, and other heat tools must be unplugged and placed in a heat-safe holder when not in use, and must be unplugged and cooled before leaving the station.</li>
+      </ul>
+
+      <p class="pt">5. Conflict &amp; Resolution</p>
+      <p>Because we are building this together, we agree to open and honest communication. Any friction regarding scheduling, supplies, noise, or shared space will be handled privately and professionally between the parties involved, or brought to management for a group discussion.</p>
+
+      <p class="pt">6. Cancellations &amp; Calling Out</p>
+      <p>As an independent business owner, you are fully responsible for managing your own schedule and client communications. If you are unable to come in, it is your sole responsibility to contact your clients directly and in a timely manner to inform them and arrange rescheduling. The salon is not responsible for notifying your clients on your behalf. Consistent failure to handle cancellations and rescheduling in a professional and timely manner reflects on the salon as a whole. The salon reserves the right to terminate your rental agreement if this standard is not upheld on a consistent basis.</p>
+
+      <p class="pt">7. Texas Compliance (TDLR)</p>
+      <p>We collectively agree to keep the salon "Inspection Ready" at all times. Please ensure a copy of your current license and a government-issued photo ID are available for inspection at all times. Proper labeling of "Clean" versus "Dirty" implements and strict adherence to single-use policies are non-negotiable standards in our shared environment.</p>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" id="agree-space"><label class="checkbox-text" for="agree-space">I have read and understood the Shared Station Agreement. I agree to uphold these professional standards, maintain my work area in accordance with TDLR safety protocols, and participate in the collaborative growth of our hair studio.</label></div>
+
+    <div class="section-divider"><span>Document 02</span></div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin-bottom:14px;">Daily Stewardship Checklist</h2>
+    <div class="policy-block">
+      <p class="pt">Opening Procedures — "The Set Up for Success"</p>
+      <ul>
+        <li><strong>Waiting Area Check:</strong> Straighten any shared seating or décor. Ensure the check-in area is tidy and welcoming.</li>
+        <li><strong>Restroom Check:</strong> Verify it is clean, stocked with toilet paper and hand towels, and the trash is empty.</li>
+        <li><strong>Station Prep:</strong> Confirm your station, chair, and mirror are clean, your tools are disinfected and stocked, and fresh capes and towels are within reach.</li>
+        <li><strong>Heat Tool Check:</strong> Inspect cords and plugs on flat irons, curling irons, and dryers. Do not use any damaged tool on a client.</li>
+      </ul>
+
+      <p class="pt">Between Every Client — "The Turnover"</p>
+      <ul>
+        <li><strong>Implements:</strong> Remove all used or contaminated tools from the work surface immediately. Combs, brushes, shears, clippers, and razor handles must be cleaned and disinfected before reuse. Single-use items go directly in the lined waste bin — never set aside for reuse.</li>
+        <li><strong>Hair Sweep:</strong> Sweep up all cut hair and dispose of it in the lined waste bin before the next client sits.</li>
+        <li><strong>Capes &amp; Towels:</strong> Use a clean cape and fresh towels and neck strip for every client. Place used linens directly in the laundry.</li>
+        <li><strong>Surface Sanitation:</strong> Wipe down the chair, counter, and styling surfaces with an EPA-registered, hospital-grade disinfectant after every appointment.</li>
+        <li><strong>Hand Hygiene:</strong> Wash hands thoroughly with soap and water or use 70% alcohol-based sanitizer before receiving the next client.</li>
+      </ul>
+
+      <p class="pt">Throughout the Day — "The Flow"</p>
+      <ul>
+        <li><strong>Color Bowls &amp; Brushes:</strong> Rinse and clean color bowls and brushes as soon as you finish with them. Do not leave mixed color or bleach sitting out.</li>
+        <li><strong>Waste Management:</strong> Empty your station waste bin before it becomes full. Bag any chemical-saturated or bodily-fluid-contaminated waste separately.</li>
+        <li><strong>Linen Rotation:</strong> If a load of capes and towels is dry, fold them and put them away; move the next load to the dryer.</li>
+        <li><strong>Shampoo Bowls:</strong> Keep drains clear of hair and wipe down the bowl after every use.</li>
+      </ul>
+
+      <p class="pt">Closing Procedures — "The Clean Slate"</p>
+      <ul>
+        <li><strong>Heat Tool Shutdown:</strong> Unplug all flat irons, curling irons, and dryers and leave them in heat-safe holders to cool.</li>
+        <li><strong>Chemical Storage:</strong> Cap and store all color, developer, bleach, and other chemicals in their original labeled containers, away from heat.</li>
+        <li><strong>Full Surface Wipe-Down:</strong> Perform a final sanitation of your chair, counter, and all hard surfaces touched during the day.</li>
+        <li><strong>Floor &amp; Waste:</strong> Sweep your station, empty the waste bin into the main dumpster, and replace with a fresh liner.</li>
+        <li><strong>Linen Check:</strong> Confirm all soiled capes and towels are in the laundry. No used linens should remain at the station overnight.</li>
+        <li><strong>Supplies Stocked:</strong> Restock any low supplies so the station is ready for the next stylist who opens.</li>
+        <li><strong>Final Walkthrough:</strong> Lights off, station is clean, heat tools are unplugged, and the front door is locked.</li>
+      </ul>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" id="agree-checklist"><label class="checkbox-text" for="agree-checklist">I agree to follow the Daily Stewardship Checklist to ensure our shared hair studio remains professional, sanitary, and welcoming for all clients and stylists. I understand that the cleanliness and safety of our station is a collective responsibility, and I commit to doing my part to maintain our shared workspace at the highest standard.</label></div>
+
+    <div class="section-divider"><span>Document 03</span></div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin-bottom:14px;">Texas Safety &amp; Compliance Protocols</h2>
+    <div class="policy-block">
+      <p class="pt">1. Licensing &amp; ID (Texas Law)</p>
+      <ul>
+        <li><strong>Visibility:</strong> Your current Texas Cosmetology Operator or Barber license must be displayed at your workstation in public view at all times.</li>
+        <li><strong>Identification:</strong> You must have a government-issued photo ID available at the salon for inspection by TDLR at any time.</li>
+        <li><strong>Updates:</strong> You are responsible for notifying the Owner of any license renewals to keep our master Salon Renter List current.</li>
+      </ul>
+
+      <p class="pt">2. Client Intake &amp; Contraindications</p>
+      <ul>
+        <li><strong>Pre-Service Consultation:</strong> Every new client must complete a client intake form prior to their first service. This form must document known allergies, current medications, scalp conditions, and previous chemical services.</li>
+        <li><strong>Patch Tests:</strong> A patch (predisposition) test is strongly recommended before applying hair color or tint to any new client, and for any client who has reported new sensitivities since their last visit.</li>
+        <li><strong>Scalp Conditions:</strong> You are responsible for refusing or modifying service for any client presenting with an open sore, infection, infestation (such as head lice), contagious scalp condition, or severe irritation. Chemical services must not be performed on irritated or broken skin.</li>
+        <li><strong>Chemical Contraindications:</strong> Do not perform relaxer, perm, bleach, or color services on hair that is severely damaged or that has been treated with an incompatible product, and perform a strand test whenever there is doubt.</li>
+      </ul>
+
+      <p class="pt">3. Infection Control &amp; Sanitation</p>
+      <ul>
+        <li><strong>Hand Hygiene:</strong> Wash hands with soap and water or use a 70% alcohol-based sanitizer before and after every client, without exception.</li>
+        <li><strong>Tool Disinfection:</strong> Combs, brushes, shears, clippers, clipper guards, and all multi-use tools must be cleaned and disinfected with an EPA-registered disinfectant between every client. Disinfected tools must be stored in a clean, closed container, separate from used tools.</li>
+        <li><strong>Single-Use Strict Policy:</strong> Razor blades, neck strips, foils, cotton, and disposable applicators are strictly single-use and must be discarded immediately after one client. Reusing single-use items is a TDLR violation and a contamination risk.</li>
+        <li><strong>Linens:</strong> A clean cape, fresh towels, and a fresh neck strip must be used for every single client. Used linens must be removed immediately after each appointment.</li>
+      </ul>
+
+      <p class="pt">4. Blood &amp; Razor-Nick Exposure</p>
+      <ul>
+        <li>If a client or stylist is cut during a service, stop immediately, put on clean gloves, and apply pressure with a clean, disposable cloth until bleeding stops.</li>
+        <li>Dispose of all contaminated items in a sealed, labeled bag, and disinfect all tools and surfaces that contacted blood with an EPA-registered, hospital-grade disinfectant before resuming service.</li>
+        <li>Razors and blades must be discarded in a puncture-proof container and never reused.</li>
+      </ul>
+
+      <p class="pt">5. Chemical &amp; Heat Safety</p>
+      <ul>
+        <li><strong>Safety Data Sheets:</strong> All stylists must provide a Safety Data Sheet (SDS) for any professional color, developer, bleach, relaxer, or chemical preparation they bring into the salon.</li>
+        <li><strong>Mixing &amp; Application:</strong> Follow manufacturer guidelines for mixing ratios, processing times, and developer strengths. Wear gloves for every chemical service.</li>
+        <li><strong>Storage:</strong> All products must be stored in their original containers, properly labeled, and kept away from direct heat or open flames. Never mix chemicals that are not designed to be combined.</li>
+        <li><strong>Ventilation:</strong> Adequate ventilation must be maintained at your station during all chemical services. Avoid creating or inhaling lightener dust, and use a mask when mixing powder lightener.</li>
+        <li><strong>Heat Tools:</strong> Test heat on a small section, use heat protectant, keep tools moving, and never leave a plugged-in heat tool unattended.</li>
+      </ul>
+
+      <p class="pt">6. Chemical or Heat Injury Procedure</p>
+      <p>If a chemical contacts a client's eyes or skin, or a client is burned during a service, the following protocol must be followed immediately:</p>
+      <ol>
+        <li>Stop the service immediately.</li>
+        <li>For chemical contact, flush the affected area with clean water for 15 minutes. For a heat burn, cool the area with cool running water.</li>
+        <li>Refer to emergency care if irritation, pain, or blistering persists.</li>
+        <li>Document the incident and notify Cio Bela management immediately.</li>
+        <li>Clean and disinfect all tools and surfaces before resuming service or before the next client.</li>
+      </ol>
+    </div>
+    <div class="checkbox-wrap"><input type="checkbox" id="agree-compliance"><label class="checkbox-text" for="agree-compliance">I acknowledge that I have received and reviewed the Texas Safety &amp; Compliance Protocols for Hair Services. I agree to maintain my workspace and professional practices in strict accordance with TDLR Health &amp; Safety standards. I understand that protecting my license, my clients, and the integrity of our shared station is a non-negotiable condition of my tenancy at Cio Bela Salons.</label></div>
+
+    <div class="section-divider"><span>Document 04</span></div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin-bottom:14px;">1099 Independent Contractor Tax Acknowledgment</h2>
+    <div class="checkbox-wrap"><input type="checkbox" id="agree-tax"><label class="checkbox-text" for="agree-tax">1099 Independent Contractor Tax Acknowledgment: I understand that I am operating as an independent 1099 contractor and am solely responsible for reporting and paying my own federal, state, and local taxes. I acknowledge that Cio Bela Salons will not withhold taxes on my behalf, will not provide me with a W-2, and is not my employer. I agree to provide a completed W-9 form upon request and understand that a 1099-NEC may be issued to me at the end of the tax year if applicable.</label></div>
+
+    <div class="section-divider"><span>Document 05</span></div>
+    <h2 style="font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;margin-bottom:14px;">Liability Waiver &amp; Insurance Requirement</h2>
+    <div class="checkbox-wrap"><input type="checkbox" id="agree-liability"><label class="checkbox-text" for="agree-liability">Liability Waiver &amp; Insurance Requirement: I understand and agree that Cio Bela Salons is not liable for any injuries, reactions, skin sensitivities, chemical or heat burns, hair damage, or other damages sustained by my clients as a result of the services I perform. As an independent contractor, I am solely responsible for the safety, quality, and outcome of my work, and I agree to conduct all services in accordance with TDLR health and safety standards. I understand that carrying active professional liability insurance is a requirement of renting at this location. Cio Bela Salons will assist me in identifying and setting up an appropriate policy; however, the cost of obtaining and maintaining this insurance is my sole financial responsibility. I agree to provide proof of active coverage upon request and to keep my policy current for the duration of my time at the salon.</label></div>
+
+    <div class="section-divider"><span>Electronic Signature</span></div>
+    <div class="legal-statement">
+      By signing below, I, the undersigned, certify that I have read, understood, and agree to be legally bound by all five agreements above: the Shared Station Agreement, the Daily Stewardship Checklist, the Texas Safety &amp; Compliance Protocols, the 1099 Independent Contractor Tax Acknowledgment, and the Liability Waiver &amp; Insurance Requirement. This electronic signature is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA).
+    </div>
+
+    <div class="sig-block">
+      <div class="sig-title">Your Signature</div>
+      <div class="sig-desc">Please sign in the box below using your finger or mouse.</div>
+      <div class="sig-canvas-wrap"><canvas id="sig-canvas"></canvas></div>
+      <button class="sig-clear" onclick="clearSig()">✕ Clear signature</button>
+      <div class="sig-fields">
+        <div class="field-group"><label class="field-label">Full Legal Name <span class="req">*</span></label><input type="text" id="sig-name" placeholder="Type your full legal name"></div>
+        <div class="field-group"><label class="field-label">Date</label><input type="text" id="sig-date" placeholder="Auto-filled on submit" readonly style="background:#F5F0E8;color:var(--warm-mid);"></div>
+      </div>
+      <div class="sig-date" id="sig-timestamp"></div>
+    </div>
+
+    <button class="btn-submit" onclick="submitForm()">Submit &amp; Sign ✓</button>
+  </div>
+
+  <div class="success-screen" id="success">
+    <div class="success-icon">✓</div>
+    <h2 class="success-title">Agreements Signed —<br><em>thank you!</em></h2>
+    <p class="success-desc">Your five agreements have been signed and your PDF has been downloaded to your device.</p>
+    <div class="success-note">
+      <strong style="font-family:'Cormorant Garamond',serif; font-size:15px; display:block; margin-bottom:6px;">One last step —</strong>
+      Please text the PDF that just downloaded to <strong>832-229-3155</strong> so we have it on file.
+    </div>
+    <a class="btn-hub" href="#" onclick="returnToHub(); return false;">← Return to Onboarding Checklist</a>
+  </div>
+
+</div>
+<script>
+  let sigCanvas, sigCtx, sigDrawing = false, sigHasSig = false;
+
+  window.addEventListener('DOMContentLoaded', () => {
+    sigCanvas = document.getElementById('sig-canvas');
+    sigCtx = sigCanvas.getContext('2d');
+    sigCanvas.width = sigCanvas.offsetWidth;
+    sigCanvas.height = 140;
+    sigCtx.strokeStyle = '#1A1714'; sigCtx.lineWidth = 2; sigCtx.lineCap = 'round'; sigCtx.lineJoin = 'round';
+
+    function getPos(e) {
+      const rect = sigCanvas.getBoundingClientRect();
+      const cx = e.clientX !== undefined ? e.clientX : e.touches[0].clientX;
+      const cy = e.clientY !== undefined ? e.clientY : e.touches[0].clientY;
+      return { x: cx - rect.left, y: cy - rect.top };
+    }
+    sigCanvas.addEventListener('mousedown', e => { sigDrawing = true; sigCtx.beginPath(); const p = getPos(e); sigCtx.moveTo(p.x,p.y); });
+    sigCanvas.addEventListener('mousemove', e => { if(!sigDrawing) return; const p = getPos(e); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); sigHasSig = true; });
+    sigCanvas.addEventListener('mouseup', () => sigDrawing = false);
+    sigCanvas.addEventListener('mouseleave', () => sigDrawing = false);
+    sigCanvas.addEventListener('touchstart', e => { e.preventDefault(); sigDrawing = true; sigCtx.beginPath(); const p = getPos(e); sigCtx.moveTo(p.x,p.y); }, {passive:false});
+    sigCanvas.addEventListener('touchmove', e => { e.preventDefault(); if(!sigDrawing) return; const p = getPos(e); sigCtx.lineTo(p.x,p.y); sigCtx.stroke(); sigHasSig = true; }, {passive:false});
+    sigCanvas.addEventListener('touchend', () => sigDrawing = false);
+
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    document.getElementById('sig-date').value = dateStr;
+    document.getElementById('sig-timestamp').textContent = 'Signed on ' + dateStr + ' at ' + timeStr;
+  });
+
+  function clearSig() { if(sigCtx) sigCtx.clearRect(0,0,sigCanvas.width,sigCanvas.height); sigHasSig = false; }
+
+  var incomingEmail = '';
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    incomingEmail = params.get('email') || '';
+  })();
+
+  function returnToHub() {
+    var url = 'https://shawntyd.github.io/ciobela-hair-onboarding/cio-bela-hair-hub.html';
+    if (incomingEmail) url += '?email=' + encodeURIComponent(incomingEmail) + '&completed=legal';
+    window.location.href = url;
+  }
+
+  function gv(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+
+  function submitForm() {
+    const sigName = gv('sig-name');
+    if (!sigName) { alert('Please type your full legal name to complete your signature.'); return; }
+    if (!sigHasSig) { alert('Please sign in the signature box before submitting.'); return; }
+    if (!document.getElementById('agree-space').checked || !document.getElementById('agree-checklist').checked ||
+        !document.getElementById('agree-compliance').checked || !document.getElementById('agree-tax').checked ||
+        !document.getElementById('agree-liability').checked) {
+      alert('Please check all five agreement boxes before submitting.'); return;
+    }
+
+    const btn = document.querySelector('.btn-submit');
+    btn.textContent = 'Generating PDF...'; btn.disabled = true;
+
+    const sigImage = sigCanvas.toDataURL('image/png');
+    const sigDate = gv('sig-date');
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+      const W=210, M=18, CW=W-M*2;
+      let y=20;
+      const gold=[201,169,110], ink=[26,23,20], mid=[140,123,104];
+
+      function checkPage(n=12){ if(y+n>275){ doc.addPage(); y=20; } }
+      function heading(t){
+        checkPage(16);
+        doc.setFontSize(7); doc.setTextColor(...gold); doc.setFont('helvetica','normal');
+        doc.text(t.toUpperCase(), M, y); y+=3;
+        doc.setDrawColor(...gold); doc.setLineWidth(0.3); doc.line(M,y,W-M,y); y+=6;
+      }
+      function badge(label, val){
+        checkPage(10);
+        doc.setFontSize(7); doc.setTextColor(...mid); doc.setFont('helvetica','normal');
+        doc.text(label.toUpperCase(), M, y); y+=4;
+        doc.setFontSize(8);
+        doc.setTextColor(...(val.includes('Agreed') ? [40,120,60] : [180,40,40]));
+        doc.text(val, M, y); y+=7;
+      }
+      function field(label, val){
+        if(!val || !val.toString().trim()) return;
+        checkPage(14);
+        doc.setFontSize(7); doc.setTextColor(...mid); doc.setFont('helvetica','normal');
+        doc.text(label.toUpperCase(), M, y); y+=4;
+        doc.setFontSize(9); doc.setTextColor(...ink);
+        doc.splitTextToSize(val.toString(), CW).forEach(l=>{ checkPage(6); doc.text(l,M,y); y+=5; }); y+=2;
+      }
+
+      doc.setFillColor(...gold); doc.rect(0,0,W,8,'F');
+      doc.setFontSize(7); doc.setTextColor(255,255,255); doc.setFont('helvetica','normal');
+      doc.text('CIO BELA SALONS  —  LEGAL AGREEMENTS (HAIR)', M, 5.5);
+      y=24;
+      doc.setFontSize(20); doc.setTextColor(...ink); doc.setFont('helvetica','bold');
+      doc.text('Legal Agreements', M, y); y+=8;
+      doc.setFontSize(9); doc.setTextColor(...mid); doc.setFont('helvetica','normal');
+      doc.text('Electronically signed on ' + sigDate, M, y); y+=12;
+
+      heading('General Information');
+      field('Full Name', gv('f-fullname'));
+      field('Email Address', gv('f-email'));
+
+      heading('Legal Agreements');
+      badge('Shared Station Agreement', document.getElementById('agree-space').checked ? 'Agreed' : 'Not agreed');
+      badge('Daily Stewardship Checklist', document.getElementById('agree-checklist').checked ? 'Agreed' : 'Not agreed');
+      badge('Texas Safety & Compliance Protocols', document.getElementById('agree-compliance').checked ? 'Agreed' : 'Not agreed');
+      badge('1099 Tax Acknowledgment', document.getElementById('agree-tax').checked ? 'Agreed' : 'Not agreed');
+      badge('Liability Waiver & Insurance Requirement', document.getElementById('agree-liability').checked ? 'Agreed' : 'Not agreed');
+
+      // Signature page
+      doc.addPage(); y=20;
+      doc.setFillColor(...gold); doc.rect(0,0,W,8,'F');
+      doc.setFontSize(7); doc.setTextColor(255,255,255);
+      doc.text('CIO BELA SALONS  —  ELECTRONIC SIGNATURE PAGE', M, 5.5);
+      y=24;
+      doc.setFontSize(14); doc.setTextColor(...ink); doc.setFont('helvetica','bold');
+      doc.text('Electronic Signature & Legal Certification', M, y); y+=10;
+      doc.setFontSize(8); doc.setTextColor(...ink); doc.setFont('helvetica','normal');
+      const legal='By signing below, the undersigned certifies that they have read, understood, and agree to be legally bound by all five agreements: the Shared Station Agreement, the Daily Stewardship Checklist, the Texas Safety & Compliance Protocols, the 1099 Independent Contractor Tax Acknowledgment, and the Liability Waiver & Insurance Requirement. This electronic signature is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA).';
+      doc.splitTextToSize(legal, CW).forEach(l=>{ doc.text(l,M,y); y+=5; }); y+=8;
+      doc.setFontSize(7); doc.setTextColor(...mid); doc.text('SIGNATURE', M, y); y+=4;
+      doc.setDrawColor(...mid); doc.setLineWidth(0.3); doc.rect(M,y,CW,36);
+      try { doc.addImage(sigImage,'PNG',M+2,y+2,CW-4,32); } catch(e) {}
+      y+=42;
+      doc.setFontSize(7); doc.setTextColor(...mid); doc.text('FULL LEGAL NAME', M, y); y+=4;
+      doc.setFontSize(12); doc.setTextColor(...ink); doc.setFont('helvetica','bold');
+      doc.text(sigName, M, y); y+=8;
+      doc.setFontSize(7); doc.setTextColor(...mid); doc.setFont('helvetica','normal');
+      doc.text('DATE OF SIGNING', M, y); y+=4;
+      doc.setFontSize(9); doc.setTextColor(...ink); doc.text(sigDate, M, y);
+
+      const pc = doc.internal.getNumberOfPages();
+      for (let i=1;i<=pc;i++){
+        doc.setPage(i);
+        doc.setFillColor(245,240,232); doc.rect(0,287,W,10,'F');
+        doc.setFontSize(6); doc.setTextColor(...mid);
+        doc.text('Cio Bela Salons  —  Confidential Legal Agreements Document', M, 292);
+        doc.text('Page ' + i + ' of ' + pc, W-M, 292, { align:'right' });
+      }
+
+      doc.save('CioBela-HairStylist-LegalAgreements-' + sigName.replace(/\s+/g,'-') + '.pdf');
+    } catch (err) {
+      console.error('PDF error:', err);
+      alert('PDF generation failed: ' + err.message);
+      btn.textContent = 'Submit & Sign ✓'; btn.disabled = false;
+      return;
+    }
+
+    document.getElementById('form-wrap').style.display = 'none';
+    document.getElementById('success').classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>

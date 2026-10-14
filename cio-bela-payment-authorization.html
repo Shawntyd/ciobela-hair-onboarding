@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cio Bela — Station Rental Auto Payment Authorization</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+function scrollTop() {
+  try { window.location.hash=''; window.location.hash='top'; } catch(e) {}
+  scrollTop();
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --ink:    #181410;
+    --cream:  #F8F4EF;
+    --warm:   #EDE5D8;
+    --gold:   #B5924A;
+    --gold2:  #D4AE72;
+    --mid:    #6B5C48;
+    --border: #D8CBBA;
+    --alert:  #8B3A2A;
+    --alert-bg: #FDF0EC;
+    --white:  #FFFFFF;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    padding: 28px 24px 22px;
+    text-align: center;
+    border-bottom: 2px solid var(--gold);
+  }
+  .h-brand {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(20px, 4vw, 30px);
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold2);
+  }
+  .h-sub {
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: #9C8670;
+    margin-top: 5px;
+    font-weight: 300;
+  }
+
+  /* ── MAIN ── */
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 44px 20px 80px;
+  }
+
+  /* ── DOC TITLE BLOCK ── */
+  .doc-title-block {
+    text-align: center;
+    margin-bottom: 36px;
+    padding-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+  .doc-eyebrow {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 10px;
+  }
+  .doc-main-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(26px, 5vw, 40px);
+    font-weight: 400;
+    color: var(--ink);
+    line-height: 1.15;
+  }
+  .doc-address {
+    font-size: 12px;
+    color: var(--mid);
+    margin-top: 10px;
+    font-weight: 300;
+    letter-spacing: 0.04em;
+  }
+
+  /* ── AUTHORIZATION PROSE ── */
+  .auth-prose {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--gold);
+    border-radius: 4px;
+    padding: 28px 28px 24px;
+    margin-bottom: 28px;
+    font-size: 14px;
+    line-height: 1.85;
+    color: var(--ink);
+    font-weight: 300;
+  }
+  .auth-prose .inline-field {
+    display: inline-block;
+    border-bottom: 1.5px solid var(--ink);
+    min-width: 180px;
+    padding: 0 4px 1px;
+    font-weight: 500;
+    color: var(--gold);
+    vertical-align: bottom;
+  }
+  .auth-prose .amount-field {
+    display: inline-block;
+    border-bottom: 1.5px solid var(--gold);
+    min-width: 90px;
+    padding: 0 4px 1px;
+    font-weight: 600;
+    color: var(--gold);
+    vertical-align: bottom;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 14px;
+    margin-top: 32px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ── FIELDS ── */
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 6px;
+  }
+  .field input, .field select {
+    width: 100%;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 11px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { border-color: var(--gold); }
+  .field input.invalid { border-color: var(--alert); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+  .grid-4 { display: grid; grid-template-columns: 2fr 2fr 1fr 1fr; gap: 12px; }
+  @media(max-width: 540px) {
+    .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
+  }
+
+  /* ── PAYMENT METHOD SELECTOR ── */
+  .method-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  @media(max-width: 480px) { .method-grid { grid-template-columns: 1fr; } }
+
+  .method-card {
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 18px 14px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.25s;
+    background: var(--white);
+  }
+  .method-card:hover { border-color: var(--gold2); }
+  .method-card.selected { border-color: var(--gold); background: #FFFBF5; }
+  .method-card.selected .method-icon { color: var(--gold); }
+  .method-icon { font-size: 24px; margin-bottom: 8px; }
+  .method-name {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--mid);
+  }
+  .method-card.selected .method-name { color: var(--gold); }
+  .method-note {
+    font-size: 10px;
+    color: #9C8670;
+    margin-top: 4px;
+    font-weight: 300;
+  }
+
+  /* ── PAYMENT PANELS ── */
+  .payment-panel { display: none; }
+  .payment-panel.active { display: block; }
+
+  .panel-box {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    margin-bottom: 10px;
+  }
+  .panel-box + .panel-box { margin-top: 14px; }
+  .panel-heading {
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mid);
+    font-weight: 500;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Second card (credit) */
+  .card-row {
+    background: var(--warm);
+    border-radius: 3px;
+    padding: 16px;
+    margin-top: 14px;
+  }
+  .card-row-label {
+    font-size: 9px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 12px;
+  }
+
+  /* ── ALERT ── */
+  .alert-box {
+    background: var(--alert-bg);
+    border-left: 3px solid var(--alert);
+    border-radius: 0 3px 3px 0;
+    padding: 12px 16px;
+    font-size: 12.5px;
+    color: var(--alert);
+    line-height: 1.6;
+    margin: 16px 0;
+  }
+  .alert-box strong { font-weight: 600; }
+
+  /* ── SIGNATURE ── */
+  .sig-wrap {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .sig-top {
+    background: var(--warm);
+    padding: 9px 16px;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--mid);
+    font-weight: 500;
+  }
+  canvas#sigPad {
+    display: block;
+    width: 100%;
+    height: 150px;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .sig-bar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 7px 12px;
+    border-top: 1px solid var(--border);
+  }
+  .btn-clear {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mid);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 5px 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .btn-clear:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── LEGAL NOTE ── */
+  .legal-note {
+    font-size: 11.5px;
+    color: var(--mid);
+    line-height: 1.75;
+    font-weight: 300;
+    margin-top: 20px;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: var(--warm);
+  }
+
+  /* ── SUBMIT ── */
+  .btn-submit {
+    width: 100%;
+    background: var(--gold);
+    color: var(--white);
+    border: none;
+    padding: 16px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 3px;
+    margin-top: 28px;
+    transition: background 0.2s;
+  }
+  .btn-submit:hover { background: var(--mid); }
+
+  /* ── SUCCESS ── */
+  #success {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .s-icon {
+    width: 68px; height: 68px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 28px;
+    color: #fff;
+  }
+  .s-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 34px;
+    font-weight: 400;
+    margin-bottom: 14px;
+  }
+  .s-body {
+    font-size: 14px;
+    color: var(--mid);
+    line-height: 1.8;
+    font-weight: 300;
+    max-width: 460px;
+    margin: 0 auto 24px;
+  }
+  .email-pill {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--gold2);
+    padding: 14px 28px;
+    border-radius: 3px;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    margin-bottom: 28px;
+  }
+  .next-box {
+    background: var(--warm);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 22px 26px;
+    max-width: 480px;
+    margin: 0 auto;
+    text-align: left;
+  }
+  .next-box h4 {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+  .next-box li {
+    list-style: none;
+    font-size: 13px;
+    color: var(--ink);
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 10px;
+    font-weight: 300;
+    line-height: 1.6;
+  }
+  .next-box li::before { content: '→'; position: absolute; left: 0; color: var(--gold); }
+</style>
+</head>
+<body>
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<header>
+  <div class="h-brand">Cio Bela</div>
+  <div class="h-sub">Cio Bela Salons</div>
+</header>
+
+<div class="wrap">
+
+  <!-- TITLE -->
+  <div class="doc-title-block">
+    <div class="doc-eyebrow">Payment Authorization</div>
+    <h1 class="doc-main-title">Station Rental Auto Payment</h1>
+    <div class="doc-address">27327 Robinson Rd., Suites 3 &amp; 4 · Oak Ridge North, TX 77385</div>
+  </div>
+
+  <!-- AUTHORIZATION PROSE (mirrors your paper form) -->
+  <div class="auth-prose" id="auth-prose">
+    I, <span class="inline-field" id="prose-name">______________________</span>,
+    authorize the below account / card to be automatically charged
+    per week on <strong>Saturday</strong> of each week by
+    <strong>Cio Bela Salons</strong>.
+    I understand that if my account / card does not provide the funds,
+    I will be contacted for an alternative form of payment. I agree that this payment is for
+    operating as an independent contractor at Cio Bela to provide cosmetic services
+    to my clientele, and failure to pay may result in revoking my ability to operate
+    at the salon. I understand that I can only cease payments by signing a
+    contract terminating my position as independent contractor at Cio Bela.
+  </div>
+
+  <!-- CONTRACTOR INFO -->
+  <div class="section-label">Contractor Information</div>
+  <div class="grid-2">
+    <div class="field">
+      <label>Full Legal Name *</label>
+      <input type="text" id="c-name" placeholder="As it appears on your license" oninput="updateProse()">
+    </div>
+    <div class="field">
+      <label>Phone Number *</label>
+      <input type="tel" id="c-phone" placeholder="(xxx) xxx-xxxx">
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="field">
+      <label>Email Address *</label>
+      <input type="email" id="c-email" placeholder="your@email.com">
+    </div>
+    <div class="field">
+      <label>TX Cosmetology Operator / Barber License # *</label>
+      <input type="text" id="c-license" placeholder="TX-XXXXXXXX">
+    </div>
+  </div>
+  <div class="grid-2">
+    <div class="field">
+      <label>Authorization Date *</label>
+      <input type="date" id="c-date">
+    </div>
+  </div>
+
+  <!-- PAYMENT METHOD SELECTOR -->
+  <div class="section-label">Select Payment Method</div>
+
+  <div class="method-grid">
+    <div class="method-card" id="m-debit" onclick="selectMethod('debit')">
+      <div class="method-icon">💳</div>
+      <div class="method-name">Debit Card</div>
+      <div class="method-note">1 card required</div>
+    </div>
+    <div class="method-card" id="m-credit" onclick="selectMethod('credit')">
+      <div class="method-icon">💎</div>
+      <div class="method-name">Credit Card</div>
+      <div class="method-note">2 cards required</div>
+    </div>
+  </div>
+
+  <!-- BANK PANEL -->
+  <div class="payment-panel" id="panel-bank">
+    <div class="panel-box">
+      <div class="panel-heading">Bank Account Details — ACH Authorization</div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Bank Name *</label>
+          <input type="text" id="bank-name" placeholder="e.g. Chase">
+        </div>
+        <div class="field">
+          <label>Account Number *</label>
+          <input type="text" id="bank-acct" placeholder="XXXXXXXXXXXX" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Routing Number *</label>
+          <input type="text" id="bank-routing" placeholder="XXXXXXXXX" autocomplete="off">
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Account Type *</label>
+          <select id="bank-type">
+            <option value="">— Select —</option>
+            <option>Checking</option>
+            <option>Savings</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Name on Account *</label>
+          <input type="text" id="bank-acct-name" placeholder="Full name on account">
+        </div>
+      </div>
+    </div>
+    <div class="alert-box">
+      <strong>ACH Authorization:</strong> By submitting, you authorize Cio Bela to initiate recurring ACH debit entries to your account every Saturday for the weekly rental amount specified above.
+    </div>
+  </div>
+
+  <!-- DEBIT PANEL -->
+  <div class="payment-panel" id="panel-debit">
+    <div class="panel-box">
+      <div class="panel-heading">Debit Card Details</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Cardholder Name *</label>
+          <input type="text" id="deb-name" placeholder="Name as it appears on card">
+        </div>
+        <div class="field">
+          <label>Card Number *</label>
+          <input type="text" id="deb-num" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" autocomplete="off" oninput="formatCard(this)">
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Expiration Date *</label>
+          <input type="text" id="deb-exp" placeholder="MM/YY" maxlength="5" oninput="formatExp(this)">
+        </div>
+        <div class="field">
+          <label>Security Code (CVV) *</label>
+          <input type="text" id="deb-cvv" placeholder="XXX" maxlength="4" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Billing Zip Code *</label>
+          <input type="text" id="deb-zip" placeholder="XXXXX" maxlength="5">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CREDIT PANEL -->
+  <div class="payment-panel" id="panel-credit">
+    <div class="panel-box">
+      <div class="panel-heading">Credit Card #1 — Primary</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Cardholder Name *</label>
+          <input type="text" id="cc1-name" placeholder="Name as it appears on card">
+        </div>
+        <div class="field">
+          <label>Card Number *</label>
+          <input type="text" id="cc1-num" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" autocomplete="off" oninput="formatCard(this)">
+        </div>
+      </div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Expiration Date *</label>
+          <input type="text" id="cc1-exp" placeholder="MM/YY" maxlength="5" oninput="formatExp(this)">
+        </div>
+        <div class="field">
+          <label>Security Code (CVV) *</label>
+          <input type="text" id="cc1-cvv" placeholder="XXX" maxlength="4" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>Billing Zip Code *</label>
+          <input type="text" id="cc1-zip" placeholder="XXXXX" maxlength="5">
+        </div>
+      </div>
+
+      <div class="card-row">
+        <div class="card-row-label">Credit Card #2 — Backup (Required for Credit Authorization)</div>
+        <div class="grid-2">
+          <div class="field">
+            <label>Cardholder Name *</label>
+            <input type="text" id="cc2-name" placeholder="Name as it appears on card">
+          </div>
+          <div class="field">
+            <label>Card Number *</label>
+            <input type="text" id="cc2-num" placeholder="XXXX-XXXX-XXXX-XXXX" maxlength="19" autocomplete="off" oninput="formatCard(this)">
+          </div>
+        </div>
+        <div class="grid-3">
+          <div class="field">
+            <label>Expiration Date *</label>
+            <input type="text" id="cc2-exp" placeholder="MM/YY" maxlength="5" oninput="formatExp(this)">
+          </div>
+          <div class="field">
+            <label>Security Code (CVV) *</label>
+            <input type="text" id="cc2-cvv" placeholder="XXX" maxlength="4" autocomplete="off">
+          </div>
+          <div class="field">
+            <label>Billing Zip Code *</label>
+            <input type="text" id="cc2-zip" placeholder="XXXXX" maxlength="5">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="alert-box">
+      <strong>Two cards required:</strong> Per Cio Bela policy, credit card authorizations require a primary and backup card on file to ensure uninterrupted station access.
+    </div>
+  </div>
+
+  <!-- SIGNATURE -->
+  <div class="section-label">Contractor Signature</div>
+  <div class="grid-2">
+    <div class="field">
+      <label>Type Full Legal Name to Confirm *</label>
+      <input type="text" id="sig-name" placeholder="Full legal name">
+    </div>
+    <div class="field">
+      <label>Date & Time</label>
+      <input type="text" id="sig-datetime" readonly>
+    </div>
+  </div>
+  <div class="sig-wrap">
+    <div class="sig-top">Draw Signature Below</div>
+    <canvas id="sigPad"></canvas>
+    <div class="sig-bar">
+      <button class="btn-clear" onclick="clearSig()">Clear</button>
+    </div>
+  </div>
+
+  <div class="legal-note">
+    This electronic authorization is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA). By signing, you authorize Cio Bela Salons to charge the payment method above on a recurring weekly basis. This authorization remains in effect until terminated in writing per the terms of your Independent Contractor Agreement.
+  </div>
+
+  <button class="btn-submit" onclick="submitForm()">Submit &amp; Download PDF Authorization</button>
+</div>
+
+<!-- SUCCESS -->
+<div id="success">
+  <div class="s-icon">✓</div>
+  <h2 class="s-title">Payment Authorization Signed!</h2>
+  <p class="s-body">Your completion has been recorded. Now do these two steps:</p>
+
+  <div style="background:#2D2520;border-radius:4px;padding:20px 24px;max-width:400px;margin:20px auto;text-align:left;">
+    <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B89A6A;margin-bottom:14px;font-weight:600;">Step 1 of 2</p>
+    <p style="font-size:14px;color:#F7F3EE;margin-bottom:16px;line-height:1.6;">Tap the button below to download your signed PDF.</p>
+    <button onclick="generatePDF()" style="display:block;width:100%;background:#B89A6A;color:#fff;border:none;padding:16px 32px;font-family:sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;">⬇ Download My Signed PDF</button>
+  </div>
+
+  <div style="background:#F7F3EE;border:1px solid #D4C4B0;border-radius:4px;padding:20px 24px;max-width:400px;margin:16px auto;text-align:left;">
+    <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B89A6A;margin-bottom:10px;font-weight:600;">Step 2 of 2</p>
+    <p style="font-size:13px;color:#6B5E4E;line-height:1.7;">Email the PDF you just downloaded to:<br><strong style="color:#1C1712;font-size:14px;">ciobelasalons@yahoo.com</strong></p>
+  </div>
+
+  <button onclick="returnToHub()" style="display:block;width:100%;max-width:400px;margin:20px auto 12px;background:#2D5A3D;color:#fff;border:none;padding:18px 32px;font-family:sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:3px;">← Return to Onboarding Checklist</button>
+  <p style="font-size:11px;color:#A0927E;text-align:center;max-width:360px;margin:0 auto 24px;">Complete steps 1 and 2 before returning to the checklist.</p>
+</div>
+
+<script>
+  // ── INIT DATE ──
+  const now = new Date();
+  const pad = n => String(n).padStart(2,'0');
+  const dtStr = `${now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'})} at ${now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',timeZoneName:'short'})}`;
+  document.getElementById('sig-datetime').value = dtStr;
+  document.getElementById('c-date').valueAsDate = now;
+
+  // ── PROSE UPDATE ──
+  function updateProse() {
+    const n = document.getElementById('c-name').value.trim() || '______________________';
+    document.getElementById('prose-name').textContent = n;
+  }
+
+  // ── METHOD SELECT ──
+  let selectedMethod = '';
+  function selectMethod(m) {
+    selectedMethod = m;
+    ['debit','credit'].forEach(x => {
+      var card = document.getElementById('m-' + x);
+      var panel = document.getElementById('panel-' + x);
+      if (card) card.classList.toggle('selected', x === m);
+      if (panel) panel.classList.toggle('active', x === m);
+    });
+  }
+
+  // ── CARD FORMATTING ──
+  function formatCard(el) {
+    let v = el.value.replace(/\D/g,'').substring(0,16);
+    el.value = v.replace(/(.{4})/g,'$1-').replace(/-$/,'');
+  }
+  function formatExp(el) {
+    let v = el.value.replace(/\D/g,'');
+    if (v.length >= 2) v = v.substring(0,2) + '/' + v.substring(2,4);
+    el.value = v;
+  }
+
+  // ── SIGNATURE ──
+  let sigCanvas, sigCtx, drawing = false, hasSig = false;
+  window.addEventListener('DOMContentLoaded', () => {
+    try { window.scrollTo(0,0); } catch(e) {}
+    try { document.documentElement.scrollTop=0; } catch(e) {}
+    try { document.body.scrollTop=0; } catch(e) {}
+    sigCanvas = document.getElementById('sigPad');
+    sigCtx = sigCanvas.getContext('2d');
+    sigCanvas.width = sigCanvas.parentElement ? sigCanvas.parentElement.offsetWidth || 340 : 340;
+    sigCanvas.height = 150;
+    sigCtx.strokeStyle = '#181410';
+    sigCtx.lineWidth = 2.5;
+    sigCtx.lineCap = 'round';
+    sigCtx.lineJoin = 'round';
+
+    const pos = e => {
+      const rect = sigCanvas.getBoundingClientRect();
+      const src = e.touches ? e.touches[0] : e;
+      return { x: src.clientX - rect.left, y: src.clientY - rect.top };
+    };
+    sigCanvas.addEventListener('mousedown', e => { drawing = true; const p = pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); });
+    sigCanvas.addEventListener('mousemove', e => { if (!drawing) return; hasSig = true; const p = pos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); });
+    sigCanvas.addEventListener('mouseup', () => drawing = false);
+    sigCanvas.addEventListener('mouseleave', () => drawing = false);
+    sigCanvas.addEventListener('touchstart', e => { e.preventDefault(); drawing = true; const p = pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); }, { passive: false });
+    sigCanvas.addEventListener('touchmove', e => { e.preventDefault(); if (!drawing) return; hasSig = true; const p = pos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); }, { passive: false });
+    sigCanvas.addEventListener('touchend', () => drawing = false);
+
+    // ── SUPABASE AUTO-FILL ──
+    var set = function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+    function doFill(p){
+      set('c-name',p.full_name||p.fullName); set('c-phone',p.phone);
+      set('c-email',p.email); set('c-license',p.license_number||p.licenseNumber);
+      if(typeof updateProse==='function') updateProse();
+    }
+    try{var cp=JSON.parse(sessionStorage.getItem('cb_prefill')||'null');if(cp)doFill({full_name:cp.fullName,phone:cp.phone,email:cp.email,license_number:cp.licenseNumber});}catch(e){}
+    var em=new URLSearchParams(window.location.search).get('email');
+    if(em&&window.supabase){var db=window.supabase.createClient('https://cphlvgsneukrrzyajikb.supabase.co','sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC');db.from('contractor_profiles').select('*').eq('email',em.toLowerCase().trim()).then(function(r){if(r.data&&r.data.length>0)doFill(r.data[0]);});}
+  });
+
+  function clearSig() {
+    sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+    hasSig = false;
+  }
+
+  // ── VALIDATION ──
+  function req(id) {
+    const el = document.getElementById(id);
+    if (!el) return true;
+    const ok = el.value.trim() !== '';
+    el.classList.toggle('invalid', !ok);
+    return ok;
+  }
+
+  function validate() {
+    let ok = true;
+    ['c-name','c-phone','c-email','c-license'].forEach(id => { if (!req(id)) ok = false; });
+    if (!selectedMethod) { alert('Please select a payment method.'); return false; }
+    if (selectedMethod === 'debit') {
+      ['deb-name','deb-num','deb-exp','deb-cvv','deb-zip'].forEach(id => { if (!req(id)) ok = false; });
+    } else if (selectedMethod === 'credit') {
+      ['cc1-name','cc1-num','cc1-exp','cc1-cvv','cc1-zip','cc2-name','cc2-num','cc2-exp','cc2-cvv','cc2-zip'].forEach(id => { if (!req(id)) ok = false; });
+    }
+    if (!ok) { alert('Please fill in all required fields.'); return false; }
+    if (!document.getElementById('sig-name').value.trim()) { alert('Please type your full legal name to confirm.'); return false; }
+    if (!hasSig) { alert('Please draw your signature before submitting.'); return false; }
+    return true;
+  }
+
+  // ── SUBMIT ──
+  async function generatePDF() {
+    const sigImg = sigCanvas.toDataURL('image/png');
+    const name = document.getElementById('c-name').value.trim();
+    const phone = document.getElementById('c-phone').value.trim();
+    const email = document.getElementById('c-email').value.trim();
+    const license = document.getElementById('c-license').value.trim();
+    const sigName = document.getElementById('sig-name').value.trim();
+    const dateStr = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
+
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+      const W = 215.9, H = 279.4, M = 18, CW = W - M * 2;
+      const gold = [181, 146, 74], ink = [24, 20, 16], mid = [107, 92, 72], warm = [237, 229, 216], cream = [248, 244, 239];
+
+      // BG
+      doc.setFillColor(...cream); doc.rect(0, 0, W, H, 'F');
+
+      // Header bar
+      doc.setFillColor(...ink); doc.rect(0, 0, W, 32, 'F');
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...gold);
+      doc.text('CIO BELA', W / 2, 13, { align: 'center' });
+      doc.setFontSize(7); doc.setFont('helvetica','normal'); doc.setTextColor(cream[0], cream[1], cream[2]);
+      doc.text('MULTI SERVICE SALON, SPA & WELLNESS CENTER LLC', W / 2, 20, { align: 'center' });
+      doc.setFontSize(6.5); doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('27327 Robinson Rd., Suites 3 & 4 · Oak Ridge North, TX 77385', W / 2, 27, { align: 'center' });
+
+      // Gold rule
+      doc.setDrawColor(...gold); doc.setLineWidth(0.7); doc.line(M, 34, W - M, 34);
+
+      // Title
+      doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('STATION RENTAL AUTO PAYMENT', W / 2, 46, { align: 'center' });
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...mid);
+      doc.text('RECURRING WEEKLY AUTHORIZATION FORM', W / 2, 53, { align: 'center' });
+
+      doc.setDrawColor(...mid); doc.setLineWidth(0.2); doc.line(M, 57, W - M, 57);
+
+      let y = 65;
+
+      // Auth prose block
+      doc.setFillColor(255,255,255); doc.setDrawColor(...gold); doc.setLineWidth(0.4);
+      doc.rect(M, y, CW, 38, 'FD');
+      doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+      const prose = `I, ${name}, authorize the below account / card to be automatically charged per week on Saturday of each week by Cio Bela Salons. I understand that if my account / card does not provide the funds I will be contacted for an alternative form of payment. I agree that this payment is for operating as an independent contractor at Cio Bela to provide cosmetic services to my clientele, and failure to pay may result in revoking my ability to operate at the salon. I understand that I can only cease payments by signing a contract terminating my position as independent contractor at Cio Bela.`;
+      const proseLines = doc.splitTextToSize(prose, CW - 10);
+      doc.text(proseLines, M + 5, y + 7);
+      y += 44;
+
+      // Contractor Info
+      doc.setFillColor(...warm); doc.rect(M, y, CW, 7, 'F');
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid);
+      doc.text('CONTRACTOR INFORMATION', M + 4, y + 5);
+      y += 11;
+
+      const infoGrid = [
+        ['Full Legal Name', name, 'Phone', phone],
+        ['Email Address', email, 'TX License #', license],
+        ['Authorization Date', dateStr, '', ''],
+      ];
+      infoGrid.forEach(row => {
+        doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid);
+        doc.text(row[0], M, y);
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+        doc.text(row[1], M, y + 5);
+        doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid);
+        doc.text(row[2], M + CW / 2, y);
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+        doc.text(row[3], M + CW / 2, y + 5);
+        y += 14;
+      });
+
+      // Payment Method
+      doc.setDrawColor(...mid); doc.setLineWidth(0.2); doc.line(M, y, W - M, y); y += 8;
+      doc.setFillColor(...warm); doc.rect(M, y, CW, 7, 'F');
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid);
+      doc.text('PAYMENT METHOD — ' + selectedMethod.toUpperCase(), M + 4, y + 5);
+      y += 12;
+
+      if (selectedMethod === 'bank') {
+        const rows = [
+          ['Bank Name', document.getElementById('bank-name').value],
+          ['Account Number', document.getElementById('bank-acct').value],
+          ['Routing Number', document.getElementById('bank-routing').value],
+          ['Account Type', document.getElementById('bank-type').value],
+          ['Name on Account', document.getElementById('bank-acct-name').value],
+        ];
+        rows.forEach(([lbl, val]) => {
+          doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text(lbl, M, y);
+          doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(val, M + 48, y);
+          y += 8;
+        });
+      } else if (selectedMethod === 'debit') {
+        var gv = function(id){ var el=document.getElementById(id); return el&&el.value?el.value:'—'; };
+        const rows = [
+          ['Cardholder Name', gv('deb-name')],
+          ['Card Number', gv('deb-num')],
+          ['Expiration', gv('deb-exp')],
+          ['Security Code (CVV)', gv('deb-cvv')],
+          ['Billing Zip', gv('deb-zip')],
+        ];
+        rows.forEach(([lbl, val]) => {
+          doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text(lbl, M, y);
+          doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(val, M + 48, y);
+          y += 8;
+        });
+      } else {
+        var gv = function(id){ var el=document.getElementById(id); return el&&el.value?el.value:'—'; };
+        // Card 1
+        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...gold); doc.text('Credit Card #1 — Primary', M, y); y += 7;
+        [['Cardholder','cc1-name'],['Card Number','cc1-num'],['Expiration','cc1-exp'],['Security Code (CVV)','cc1-cvv'],['Billing Zip','cc1-zip']].forEach(([lbl,id]) => {
+          doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text(lbl, M, y);
+          doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(gv(id), M + 48, y);
+          y += 7;
+        });
+        y += 4;
+        doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(...gold); doc.text('Credit Card #2 — Backup', M, y); y += 7;
+        [['Cardholder','cc2-name'],['Card Number','cc2-num'],['Expiration','cc2-exp'],['Security Code (CVV)','cc2-cvv'],['Billing Zip','cc2-zip']].forEach(([lbl,id]) => {
+          doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text(lbl, M, y);
+          doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(gv(id), M + 48, y);
+          y += 7;
+        });
+      }
+
+      y += 8;
+      // Legal
+      doc.setFillColor(253, 240, 236); doc.rect(M, y, CW, 16, 'F');
+      doc.setDrawColor(139, 58, 42); doc.setLineWidth(0.4); doc.line(M, y, M, y + 16);
+      doc.setFontSize(7.5); doc.setFont('helvetica','normal'); doc.setTextColor(139, 58, 42);
+      const legal = 'This electronic authorization is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA). This authorization remains in effect until terminated in writing per the terms of your Independent Contractor Agreement.';
+      const lLines = doc.splitTextToSize(legal, CW - 6);
+      doc.text(lLines, M + 4, y + 5.5);
+      y += 22;
+
+      // Signature
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('CONTRACTOR SIGNATURE', M, y); y += 5;
+      doc.setDrawColor(...mid); doc.setLineWidth(0.3); doc.rect(M, y, CW, 30);
+      try { doc.addImage(sigImg, 'PNG', M + 2, y + 2, CW - 4, 26); } catch(e) {}
+      y += 35;
+
+      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('FULL LEGAL NAME', M, y); y += 5;
+      doc.setFontSize(11); doc.setFont('helvetica','bold'); doc.setTextColor(...ink); doc.text(sigName, M, y); y += 9;
+      doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...mid); doc.text('DATE & TIME OF SIGNING', M, y); y += 5;
+      doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink); doc.text(`${dateStr} at ${timeStr}`, M, y);
+
+      // Footer
+      doc.setFillColor(...ink); doc.rect(0, H - 10, W, 10, 'F');
+      doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(...gold);
+      doc.text('Cio Bela — Multi Service Salon, Spa & Wellness Center LLC  |  Station Rental Auto Payment Authorization', M, H - 4.5);
+      doc.setTextColor(...mid);
+      doc.text(dateStr, W - M, H - 4.5, { align: 'right' });
+
+      doc.save('CioBela-PaymentAuthorization-' + name.replace(/\s+/g,'-') + '.pdf');
+    } catch(err) {
+      console.error('PDF error:', err);
+    }
+  }
+
+  async function submitForm() {
+    let ok = true;
+    ['c-name','c-phone','c-email','c-license'].forEach(id => { if (!req(id)) ok = false; });
+    if (!selectedMethod) { alert('Please select a payment method.'); return; }
+    if (!validate()) return;
+    if (!hasSig) { alert('Please draw your signature.'); return; }
+
+    var email = document.getElementById('c-email').value.trim().toLowerCase();
+
+    // Save to Supabase automatically
+    if (email && window.supabase) {
+      try {
+        var db = window.supabase.createClient('https://cphlvgsneukrrzyajikb.supabase.co','sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC');
+        
+        var current = await db.from('contractor_progress').select('*').eq('contractor_email', emailLower);
+        var total = 0;
+        if (current.data && current.data.length > 0) {
+          var row = current.data[0];
+          row['payment_signed'] = true;
+          var allF = ['contract_signed', 'payment_signed', 'w9_signed', 'standards_signed', 'id_uploaded', 'release_signed', 'emergency_signed'];
+          total = allF.filter(function(f){ return !!row[f]; }).length;
+        }
+        await db.from('contractor_progress').update({
+          payment_signed: true,
+          total_complete: total,
+          onboarding_done: total >= 6
+        }).eq('contractor_email', emailLower);
+      } catch(e) { console.error('Supabase error:', e); }
+    }
+
+    // Show success immediately
+    document.querySelector('.wrap').style.display = 'none';
+    document.getElementById('success').style.display = 'block';
+    scrollTop();
+  }
+
+  function downloadPDF() {
+    try { generatePDF(); } catch(e) { alert('PDF download unavailable. Your authorization has been recorded.'); }
+  }
+
+  function returnToHub() {
+    var email = document.getElementById('c-email').value.trim();
+    var url = 'https://shawntyd.github.io/ciobela-hair-onboarding/cio-bela-hair-hub.html';
+    if (email) url += '?email=' + encodeURIComponent(email) + '&completed=payment';
+    window.location.href = url;
+  }
+</script>
+</body>
+</html>

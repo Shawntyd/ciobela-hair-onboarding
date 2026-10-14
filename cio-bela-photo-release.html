@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cio Bela — Social Media & Photography Release</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+function scrollTop() {
+  try { window.location.hash=''; window.location.hash='top'; } catch(e) {}
+  scrollTop();
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{
+  --ink:#181410;--cream:#F8F4EF;--warm:#EDE5D8;--parch:#E5DDD0;
+  --gold:#B5924A;--gold2:#D4AE72;--mid:#6B5C48;--border:#D8CBBA;
+  --alert:#7A3B1E;--alert-bg:#FDF0E8;--green:#2A5C3F;--green-bg:#EBF5EF;
+  --info:#1B4D6B;--info-bg:#EBF4FA;--white:#fff;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);}
+
+/* HERO */
+.hero{background:var(--ink);padding:52px 24px 44px;text-align:center;border-bottom:2px solid var(--gold);position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 60% 0%, rgba(181,146,74,.12) 0%, transparent 60%);}
+.hero-inner{position:relative;z-index:1;}
+.hero-tag{font-size:10px;letter-spacing:.35em;text-transform:uppercase;color:var(--gold2);font-weight:500;margin-bottom:14px;}
+.hero-title{font-family:'Playfair Display',serif;font-size:clamp(28px,6vw,48px);font-weight:400;color:var(--cream);line-height:1.15;margin-bottom:10px;}
+.hero-title em{font-style:italic;color:var(--gold2);}
+.hero-sub{font-size:13px;color:#8C7A64;font-weight:300;line-height:1.7;max-width:480px;margin:0 auto;}
+
+/* MAIN */
+.wrap{max-width:720px;margin:0 auto;padding: 44px 20px 200px;}
+
+/* INTRO CARD */
+.intro-card{background:var(--white);border:1px solid var(--border);border-top:3px solid var(--gold);border-radius:4px;padding:28px;margin-bottom:32px;}
+.intro-card h2{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;margin-bottom:12px;color:var(--ink);}
+.intro-card p{font-size:13.5px;line-height:1.8;color:var(--ink);font-weight:300;margin-bottom:12px;}
+.intro-card p:last-child{margin-bottom:0;}
+
+/* SECTION LABEL */
+.sec-label{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);font-weight:500;margin:32px 0 14px;display:flex;align-items:center;gap:12px;}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border);}
+
+/* INSTR */
+.instr{border-radius:0 4px 4px 0;padding:12px 16px;margin-bottom:14px;font-size:12.5px;line-height:1.65;}
+.instr.info{background:var(--info-bg);border-left:3px solid var(--info);color:var(--info);}
+.instr.warn{background:var(--alert-bg);border-left:3px solid var(--alert);color:var(--alert);}
+.instr.good{background:var(--green-bg);border-left:3px solid var(--green);color:var(--green);}
+.instr strong{font-weight:600;}
+
+/* FIELDS */
+.fg{margin-bottom:28px;}
+.fg label{display:block;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--mid);margin-bottom:5px;font-weight:500;}
+.fg .hint{font-size:12px;color:var(--mid);margin-bottom:8px;font-weight:300;line-height:1.6;}
+.fg input,.fg select,.fg textarea{width:100%;background:var(--white);border:1px solid var(--border);border-radius:3px;padding:11px 14px;font-family:'DM Sans',sans-serif;font-size:14px;color:var(--ink);outline:none;transition:border-color .2s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gold);}
+.fg input.invalid{border-color:var(--alert)!important;}
+.fg textarea{min-height:80px;resize:vertical;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:520px){.g2{grid-template-columns:1fr;}}
+
+/* GRANT CARDS */
+.grant-grid{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:8px;}
+.grant-card{background:var(--white);border:1.5px solid var(--border);border-radius:4px;padding:18px 20px;cursor:pointer;transition:all .22s;}
+.grant-card:hover{border-color:var(--gold2);}
+.grant-card.selected{border-color:var(--gold);background:#FFFBF5;}
+.grant-head{display:flex;align-items:flex-start;gap:14px;}
+.grant-head input[type=checkbox]{accent-color:var(--gold);min-width:18px;height:18px;margin-top:2px;cursor:pointer;}
+.grant-title{font-size:14px;font-weight:500;color:var(--ink);margin-bottom:4px;}
+.grant-desc{font-size:12.5px;font-weight:300;color:var(--mid);line-height:1.6;}
+
+/* RESTRICTION CHIPS */
+.restriction-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-top:12px;}
+.r-chip{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--white);border:1px solid var(--border);border-radius:3px;cursor:pointer;font-size:12.5px;font-weight:300;transition:all .2s;}
+.r-chip:hover{border-color:var(--gold);}
+.r-chip.checked{border-color:var(--alert);background:var(--alert-bg);}
+.r-chip input{accent-color:var(--alert);min-width:14px;}
+
+/* SCOPE TOGGLE */
+.scope-row{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
+.scope-btn{padding:8px 20px;border:1.5px solid var(--border);border-radius:20px;font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;cursor:pointer;background:var(--white);color:var(--mid);transition:all .2s;font-family:'DM Sans',sans-serif;}
+.scope-btn:hover{border-color:var(--gold);}
+.scope-btn.active{border-color:var(--gold);background:var(--gold);color:#fff;}
+
+/* SIGNATURE */
+.sig-wrap{background:var(--white);border:1px solid var(--border);border-radius:4px;overflow:hidden;margin-top:6px;}
+.sig-top{background:var(--warm);padding:9px 16px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--mid);font-weight:500;}
+canvas#sigPad{display:block;width:100%;height:150px;cursor:crosshair;touch-action:none;}
+.sig-bar{display:flex;justify-content:flex-end;padding:7px 12px;border-top:1px solid var(--border);}
+.btn-clr{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--mid);background:none;border:1px solid var(--border);padding:5px 14px;border-radius:2px;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .2s;}
+.btn-clr:hover{border-color:var(--gold);color:var(--gold);}
+
+.legal-note{background:var(--parch);border:1px solid var(--border);border-radius:3px;padding:14px 18px;font-size:12px;color:var(--mid);line-height:1.7;font-style:italic;margin:20px 0;}
+.btn-submit{width:100%;background:var(--gold);color:#fff;border:none;padding:16px;font-family:'DM Sans',sans-serif;font-size:12px;letter-spacing:.26em;text-transform:uppercase;font-weight:500;cursor:pointer;border-radius:2px;transition:background .2s;}
+.btn-submit:hover{background:var(--mid);}
+
+hr.div{border:none;border-top:1px solid var(--border);margin:24px 0;}
+
+#success{display:none;text-align:center;padding:60px 20px;}
+.s-icon{width:68px;height:68px;background:var(--gold);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:28px;color:#fff;}
+.s-title{font-family:'Playfair Display',serif;font-size:34px;font-weight:400;margin-bottom:14px;}
+.s-body{font-size:14px;color:var(--mid);line-height:1.8;font-weight:300;max-width:460px;margin:0 auto 24px;}
+.email-pill{display:inline-block;background:var(--ink);color:var(--gold2);padding:14px 28px;border-radius:3px;font-size:15px;margin-bottom:28px;}
+.next-box{background:var(--warm);border:1px solid var(--border);border-radius:4px;padding:22px 26px;max-width:480px;margin:0 auto;text-align:left;}
+.next-box h4{font-size:10px;letter-spacing:.25em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+.next-box li{list-style:none;font-size:13px;color:var(--ink);padding-left:16px;position:relative;margin-bottom:10px;font-weight:300;line-height:1.6;}
+.next-box li::before{content:'→';position:absolute;left:0;color:var(--gold);}
+</style>
+</head>
+<body>
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<div class="hero">
+  <div class="hero-inner">
+    <div class="hero-tag">Cio Bela — Multi Service Salon, Spa &amp; Wellness Center LLC</div>
+    <h1 class="hero-title">Social Media &amp;<br><em>Photography Release</em></h1>
+    <p class="hero-sub">This release defines how Cio Bela may use photos and videos of your work, your likeness, and content created at our location — and how you may use ours.</p>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <div class="intro-card">
+    <h2>About This Document</h2>
+    <p>As a contractor at Cio Bela, your work may be photographed, featured, and shared across our marketing channels — including Instagram, TikTok, our website, and promotional materials. This release clarifies exactly what you are and are not consenting to, and what rights you retain over your own content.</p>
+    <p>This is a <strong>two-way agreement</strong>. It also outlines your rights to share content captured at Cio Bela on your own platforms, and the guidelines that apply.</p>
+    <p>Read each section carefully and check only the permissions you are comfortable granting. You may choose to grant all, some, or none of the optional permissions below.</p>
+  </div>
+
+  <!-- CONTRACTOR INFO -->
+  <div class="sec-label">Contractor Information</div>
+  <div class="g2">
+    <div class="fg"><label>Full Legal Name *</label><input type="text" id="c-name" placeholder="As it appears on your license"></div>
+    <div class="fg"><label>Stage Name / Artist Name</label><input type="text" id="c-stage" placeholder="e.g. Hair by Destiny"></div>
+  </div>
+  <div class="g2">
+    <div class="fg"><label>Phone Number *</label><input type="tel" id="c-phone" placeholder="(xxx) xxx-xxxx"></div>
+    <div class="fg"><label>Email Address *</label><input type="email" id="c-email" placeholder="your@email.com"></div>
+  </div>
+  <div class="g2">
+    <div class="fg"><label>Instagram Handle</label><div class="hint">Your personal or professional account — how Cio Bela will tag you in shared content.</div><input type="text" id="c-ig" placeholder="@yourhandle"></div>
+    <div class="fg"><label>TikTok Handle</label><input type="text" id="c-tt" placeholder="@yourhandle"></div>
+  </div>
+
+  <!-- PART 1: WHAT CIO BELA CAN USE -->
+  <div class="sec-label">Part 1 — What Cio Bela May Use</div>
+  <div class="instr info"><strong>These permissions are for Cio Bela's use of content featuring your work or likeness.</strong> Check each box you agree to. Unchecked items are not granted. All checked items allow Cio Bela to use your content for the stated purpose with attribution to you where applicable.</div>
+
+  <div class="grant-grid" id="grants-cb">
+
+    <div class="grant-card" onclick="toggleGrant(this,'g1')">
+      <div class="grant-head">
+        <input type="checkbox" id="g1">
+        <div>
+          <div class="grant-title">Photos &amp; Videos of My Hair Work</div>
+          <div class="grant-desc">Cio Bela may photograph and/or video record completed hair services at my station and share them on Cio Bela's social media, website, and marketing materials. My artist name or handle will be tagged or credited where possible.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grant-card" onclick="toggleGrant(this,'g2')">
+      <div class="grant-head">
+        <input type="checkbox" id="g2">
+        <div>
+          <div class="grant-title">Behind-the-Scenes / Process Content</div>
+          <div class="grant-desc">Cio Bela may capture and share behind-the-scenes content of me working at my station — including process videos, time-lapses, or candid salon footage — for use on social media and marketing platforms.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grant-card" onclick="toggleGrant(this,'g3')">
+      <div class="grant-head">
+        <input type="checkbox" id="g3">
+        <div>
+          <div class="grant-title">Professional Headshot / Profile Use</div>
+          <div class="grant-desc">Cio Bela may use my professional headshot or a salon-taken photo of me for my artist profile on the Cio Bela website, booking platform, promotional flyers, or similar materials.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grant-card" onclick="toggleGrant(this,'g4')">
+      <div class="grant-head">
+        <input type="checkbox" id="g4">
+        <div>
+          <div class="grant-title">Reposting My Personal Content</div>
+          <div class="grant-desc">Cio Bela may re-share or repost content I publish on my personal social media accounts (Instagram, TikTok, etc.) to Cio Bela's official accounts, provided I am tagged or credited in the original post.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grant-card" onclick="toggleGrant(this,'g5')">
+      <div class="grant-head">
+        <input type="checkbox" id="g5">
+        <div>
+          <div class="grant-title">Paid Advertising &amp; Promotions</div>
+          <div class="grant-desc">Cio Bela may use photos or videos of my work or likeness in paid advertising, boosted posts, or promotional campaigns (including Meta Ads, Google Ads, or print).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grant-card" onclick="toggleGrant(this,'g6')">
+      <div class="grant-head">
+        <input type="checkbox" id="g6">
+        <div>
+          <div class="grant-title">Press, Media &amp; PR Coverage</div>
+          <div class="grant-desc">Cio Bela may include photos of my work or my name in press releases, media features, editorial coverage, or public relations materials promoting the salon.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- PART 2: CONTRACTOR'S RIGHTS -->
+  <div class="sec-label">Part 2 — Your Rights to Share Cio Bela Content</div>
+  <div class="instr good"><strong>This section defines what you are permitted to share from Cio Bela on your own platforms.</strong> These rights are granted to you by Cio Bela as part of this mutual release.</div>
+
+  <div class="grant-grid">
+    <div class="grant-card selected">
+      <div class="grant-head">
+        <input type="checkbox" checked disabled style="accent-color:var(--gold);">
+        <div>
+          <div class="grant-title">Portfolio Content of Your Work ✓ Always Permitted</div>
+          <div class="grant-desc">You may always share photos and videos of your completed hair work performed at Cio Bela on your personal and professional social media accounts — including after contract termination. Your artistic portfolio belongs to you.</div>
+        </div>
+      </div>
+    </div>
+    <div class="grant-card selected">
+      <div class="grant-head">
+        <input type="checkbox" checked disabled style="accent-color:var(--gold);">
+        <div>
+          <div class="grant-title">Salon Aesthetic &amp; Ambiance ✓ Always Permitted</div>
+          <div class="grant-desc">You may share photos that capture the Cio Bela space, ambiance, or aesthetic while you are an active contractor. This includes station setups, product flat-lays, and behind-the-scenes content you capture yourself.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sec-label">Part 2B — Your Agreed Obligations</div>
+  <div class="instr info">The following obligations are agreed to by all contractors and are non-negotiable. They reflect the terms already outlined in your Contractor Agreement.</div>
+
+  <div class="grant-grid">
+    <div class="grant-card">
+      <div class="grant-head">
+        <input type="checkbox" id="ob1" style="accent-color:var(--gold);" onchange="toggleOb(this)">
+        <div>
+          <div class="grant-title">Client Consent Before Posting *</div>
+          <div class="grant-desc">I will obtain explicit verbal or written consent from any client before posting photos or videos of them — including photos of just their hands — to any public platform. I understand that posting without consent is a violation of my Contractor Agreement and client privacy standards.</div>
+        </div>
+      </div>
+    </div>
+    <div class="grant-card">
+      <div class="grant-head">
+        <input type="checkbox" id="ob2" style="accent-color:var(--gold);" onchange="toggleOb(this)">
+        <div>
+          <div class="grant-title">Brand Removal Upon Termination *</div>
+          <div class="grant-desc">Upon resignation or termination of my Contractor Agreement, I will remove all references to "Cio Bela" from my social media bios, highlights, and profile descriptions within 24 hours. I understand that failure to do so constitutes Brand Infringement under my Contractor Agreement.</div>
+        </div>
+      </div>
+    </div>
+    <div class="grant-card">
+      <div class="grant-head">
+        <input type="checkbox" id="ob3" style="accent-color:var(--gold);" onchange="toggleOb(this)">
+        <div>
+          <div class="grant-title">No Negative Brand Content *</div>
+          <div class="grant-desc">I agree not to post content — including photos, videos, captions, stories, or comments — that portrays Cio Bela, its management, staff, or other contractors in a negative, defamatory, or damaging light on any public platform.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SIGNATURE -->
+  <hr class="div">
+  <div class="sec-label">Signature &amp; Date</div>
+
+  <div class="instr warn"><strong>⚠ Required checkboxes above:</strong> You must check all three obligation boxes in Part 2B (client consent, brand removal, and no negative content) before this release can be finalized. These obligations are non-negotiable per your Contractor Agreement.</div>
+
+  <div class="g2">
+    <div class="fg"><label>Full Legal Name — Type to Confirm *</label><input type="text" id="sig-name" placeholder="Type your full legal name exactly"></div>
+    <div class="fg"><label>Signing Date</label><input type="text" id="sig-date" readonly></div>
+  </div>
+
+  <div class="sig-wrap">
+    <div class="sig-top">Draw Your Signature</div>
+    <canvas id="sigPad"></canvas>
+    <div class="sig-bar"><button class="btn-clr" onclick="clearSig()">Clear</button></div>
+  </div>
+
+  <div class="legal-note">By signing this Social Media &amp; Photography Release, I confirm that I have read and understood all permissions granted and obligations accepted above. I understand this is a legally binding document. This electronic signature is valid under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA).</div>
+
+  <button class="btn-submit" onclick="submitRelease()">Submit &amp; Download Release PDF</button>
+</div>
+
+<div id="success">
+  <div class="s-icon">✓</div>
+  <h2 class="s-title">Photo Release Signed!</h2>
+  <p class="s-body">Your completion has been recorded. Now do these two steps:</p>
+
+  <div style="background:#2D2520;border-radius:4px;padding:20px 24px;max-width:400px;margin:20px auto;text-align:left;">
+    <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B89A6A;margin-bottom:14px;font-weight:600;">Step 1 of 2</p>
+    <p style="font-size:14px;color:#F7F3EE;margin-bottom:16px;line-height:1.6;">Tap the button below to download your signed PDF.</p>
+    <button onclick="generatePDF()" style="display:block;width:100%;background:#B89A6A;color:#fff;border:none;padding:16px 32px;font-family:sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;">⬇ Download My Signed PDF</button>
+  </div>
+
+  <div style="background:#F7F3EE;border:1px solid #D4C4B0;border-radius:4px;padding:20px 24px;max-width:400px;margin:16px auto;text-align:left;">
+    <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B89A6A;margin-bottom:10px;font-weight:600;">Step 2 of 2</p>
+    <p style="font-size:13px;color:#6B5E4E;line-height:1.7;">Email the PDF you just downloaded to:<br><strong style="color:#1C1712;font-size:14px;">ciobelasalons@yahoo.com</strong></p>
+  </div>
+
+  <button onclick="returnToHub()" style="display:block;width:100%;max-width:400px;margin:20px auto 12px;background:#2D5A3D;color:#fff;border:none;padding:18px 32px;font-family:sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:3px;">← Return to Onboarding Checklist</button>
+  <p style="font-size:11px;color:#A0927E;text-align:center;max-width:360px;margin:0 auto 24px;">Complete steps 1 and 2 before returning to the checklist.</p>
+</div>
+
+<script>
+const now=new Date();
+const dateStr=now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+const timeStr=now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
+let hasSig=false,drawing=false,sc,sx;
+
+window.addEventListener('DOMContentLoaded',()=>{
+    try { window.scrollTo(0,0); } catch(e) {}
+    try { document.documentElement.scrollTop=0; } catch(e) {}
+    try { document.body.scrollTop=0; } catch(e) {}
+  document.getElementById('sig-date').value=dateStr;
+  initSig();
+
+  // ── SUPABASE AUTO-FILL ──
+  var set=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+  function doFill(p){set('c-name',p.full_name||p.fullName);set('c-phone',p.phone);set('c-email',p.email);}
+  try{var cp=JSON.parse(sessionStorage.getItem('cb_prefill')||'null');if(cp)doFill({full_name:cp.fullName,phone:cp.phone,email:cp.email});}catch(e){}
+  var em=new URLSearchParams(window.location.search).get('email');
+  if(em&&window.supabase){var db=window.supabase.createClient('https://cphlvgsneukrrzyajikb.supabase.co','sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC');db.from('contractor_profiles').select('*').eq('email',em.toLowerCase().trim()).then(function(r){if(r.data&&r.data.length>0)doFill(r.data[0]);});}
+});
+
+function toggleGrant(card,id){
+  const cb=document.getElementById(id);
+  setTimeout(()=>{ card.classList.toggle('selected',cb.checked); },0);
+}
+function toggleChip(label){
+  const cb=label.querySelector('input');
+  setTimeout(()=>{ label.classList.toggle('checked',cb.checked); },0);
+}
+function toggleOb(cb){
+  cb.closest('.grant-card').classList.toggle('selected',cb.checked);
+}
+function toggleScope(btn){
+  btn.classList.toggle('active');
+}
+
+function getGrantedList(){
+  const labels={g1:'Photos & Videos of My Work',g2:'Behind-the-Scenes / Process Content',g3:'Professional Headshot / Profile Use',g4:'Reposting My Personal Content',g5:'Paid Advertising & Promotions',g6:'Press, Media & PR Coverage'};
+  return Object.entries(labels).filter(([id])=>document.getElementById(id)?.checked).map(([,v])=>v);
+}
+function getRestrictions(){
+  const labels={r1:'Do not show my face',r2:'Hands only — no face or body',r3:'No paid advertising use',r4:'No use on TikTok',r5:'No use on external websites',r6:'Notify me before each use',r7:'Time-limited use only'};
+  return Object.entries(labels).filter(([id])=>document.getElementById(id)?.checked).map(([,v])=>v);
+}
+function getScopes(){
+  return Array.from(document.querySelectorAll('.scope-btn.active')).map(b=>b.textContent);
+}
+
+function initSig(){
+  sc=document.getElementById('sigPad'); sx=sc.getContext('2d');
+  const ratio=window.devicePixelRatio||1;
+  const r=sc.getBoundingClientRect();
+  sc.width=r.width*ratio; sc.height=150*ratio;
+  sx.scale(ratio,ratio);
+  sx.strokeStyle='#181410'; sx.lineWidth=2.2; sx.lineCap='round'; sx.lineJoin='round';
+  const pos=e=>{const rect=sc.getBoundingClientRect();const s=e.touches?e.touches[0]:e;return{x:s.clientX-rect.left,y:s.clientY-rect.top};};
+  sc.addEventListener('mousedown',e=>{drawing=true;const p=pos(e);sx.beginPath();sx.moveTo(p.x,p.y);});
+  sc.addEventListener('mousemove',e=>{if(!drawing)return;hasSig=true;const p=pos(e);sx.lineTo(p.x,p.y);sx.stroke();});
+  sc.addEventListener('mouseup',()=>drawing=false);
+  sc.addEventListener('mouseleave',()=>drawing=false);
+  sc.addEventListener('touchstart',e=>{e.preventDefault();drawing=true;const p=pos(e);sx.beginPath();sx.moveTo(p.x,p.y);},{passive:false});
+  sc.addEventListener('touchmove',e=>{e.preventDefault();if(!drawing)return;hasSig=true;const p=pos(e);sx.lineTo(p.x,p.y);sx.stroke();},{passive:false});
+  sc.addEventListener('touchend',()=>drawing=false);
+}
+function clearSig(){sx.clearRect(0,0,sc.width,sc.height);hasSig=false;}
+
+function req(id){const el=document.getElementById(id);if(!el)return true;const ok=!!el.value.trim();el.classList.toggle('invalid',!ok);return ok;}
+
+async function submitRelease(){
+  let ok=true;
+  ['c-name','c-phone','c-email'].forEach(id=>{if(!req(id))ok=false;});
+  if(!ok){alert('Please complete all required contractor fields.');return;}
+  if(!document.getElementById('ob1').checked||!document.getElementById('ob2').checked||!document.getElementById('ob3').checked){
+    alert('Please check all three required obligation boxes in Part 2B before signing.');return;
+  }
+  if(!document.getElementById('sig-name').value.trim()){alert('Please type your full legal name to confirm.');return;}
+  if(!hasSig){alert('Please draw your signature before submitting.');return;}
+
+  const sigImg=sc.toDataURL('image/png');
+  const name=document.getElementById('c-name').value.trim();
+  const stage=document.getElementById('c-stage').value.trim();
+  const phone=document.getElementById('c-phone').value.trim();
+  const email=document.getElementById('c-email').value.trim();
+  const ig=document.getElementById('c-ig').value.trim();
+  const tt=document.getElementById('c-tt').value.trim();
+  const granted=getGrantedList();
+  const sigName=document.getElementById('sig-name').value.trim();
+
+  try{
+    const{jsPDF}=window.jspdf;
+    const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+    const W=215.9,H=279.4,M=16,CW=W-M*2;
+    const gold=[181,146,74],ink=[24,20,16],mid=[107,92,72],warm=[237,229,216],cream=[248,244,239],
+          green=[42,92,63],red=[122,59,32],info=[27,77,107],white=[255,255,255];
+
+    // ── COVER ──
+    doc.setFillColor(...ink); doc.rect(0,0,W,H,'F');
+    doc.setDrawColor(...gold); doc.setLineWidth(0.08);
+    for(let gx=0;gx<=W;gx+=18) doc.line(gx,0,gx,H);
+    for(let gy=0;gy<=H;gy+=18) doc.line(0,gy,W,gy);
+    doc.setFillColor(22,18,14); doc.rect(18,36,W-36,H-72,'F');
+    doc.setDrawColor(...gold); doc.setLineWidth(0.5); doc.rect(20,38,W-40,H-76);
+    doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...gold);
+    doc.text('CIO BELA — MULTI SERVICE SALON, SPA & WELLNESS CENTER LLC', W/2, 56, {align:'center'});
+    doc.setDrawColor(...gold); doc.setLineWidth(0.4); doc.line(M+20,62,W-M-20,62);
+    doc.setFontSize(26); doc.setFont('helvetica','bold'); doc.setTextColor(...cream);
+    doc.text('SOCIAL MEDIA &', W/2, 82, {align:'center'});
+    doc.setFontSize(20); doc.setFont('helvetica','normal'); doc.setTextColor(...gold);
+    doc.text('Photography Release', W/2, 95, {align:'center'});
+    doc.line(M+20,103,W-M-20,103);
+    doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(160,140,110);
+    doc.text('Independent Contractor Mutual Media Agreement', W/2, 112, {align:'center'});
+    doc.text('27327 Robinson Rd., Suites 3 & 4 · Oak Ridge North, TX 77385', W/2, 120, {align:'center'});
+
+    doc.setFillColor(28,24,18); doc.rect(22,H-100,W-44,50,'F');
+    doc.setDrawColor(...gold); doc.setLineWidth(0.3); doc.rect(22,H-100,W-44,50);
+    const cRows=[['CONTRACTOR',name],['ARTIST NAME',stage||'—'],['SIGNED',dateStr]];
+    let cy=H-91;
+    cRows.forEach(([l,v])=>{
+      doc.setFontSize(6.5);doc.setFont('helvetica','bold');doc.setTextColor(...gold);doc.text(l,30,cy);
+      doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(...cream);doc.text(v,72,cy);
+      cy+=10;
+    });
+    doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(100,88,70);
+    doc.text('Legally binding under the E-SIGN Act and Texas TUETA.', W/2,H-38,{align:'center'});
+
+    // ── CONTENT PAGES ──
+    const addPage=()=>{
+      doc.addPage();
+      doc.setFillColor(...cream);doc.rect(0,0,W,H,'F');
+      doc.setFillColor(...ink);doc.rect(0,0,W,14,'F');
+      doc.setFontSize(7);doc.setFont('helvetica','normal');doc.setTextColor(...gold);
+      doc.text('CIO BELA SALONS — SOCIAL MEDIA & PHOTOGRAPHY RELEASE',M,9.5);
+      doc.setTextColor(...mid);doc.text(dateStr,W-M,9.5,{align:'right'});
+      return 24;
+    };
+
+    let y=addPage();
+    doc.setFontSize(18);doc.setFont('helvetica','bold');doc.setTextColor(...ink);doc.text('Contractor Information',M,y);y+=5;
+    doc.setDrawColor(...gold);doc.setLineWidth(0.4);doc.line(M,y,M+60,y);y+=10;
+
+    const info1=[['Full Legal Name',name],['Artist / Stage Name',stage||'—'],['Phone',phone],['Email',email],['Instagram',ig||'—'],['TikTok',tt||'—']];
+    info1.forEach(([l,v])=>{
+      doc.setFontSize(6.5);doc.setFont('helvetica','bold');doc.setTextColor(...mid);doc.text(l,M,y);
+      doc.setFontSize(9.5);doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.text(v,M+48,y);
+      y+=7;
+    });
+    y+=8;
+
+    // Permissions granted
+    doc.setFillColor(...gold);doc.rect(M,y,CW,7,'F');
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(...white);doc.text('Part 1 — Permissions Granted to Cio Bela Salons',M+3,y+5);y+=10;
+    if(granted.length>0){
+      granted.forEach(g=>{
+        doc.setFillColor(...green);doc.rect(M,y-3,3,3,'F');
+        doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.text('✓  '+g,M+6,y);
+        y+=7;
+      });
+    } else {
+      doc.setFontSize(9);doc.setFont('helvetica','italic');doc.setTextColor(...mid);doc.text('No optional permissions granted.',M+6,y);y+=7;
+    }
+    y+=8;
+
+    // Obligations
+    doc.setFillColor(...gold);doc.rect(M,y,CW,7,'F');
+    doc.setFontSize(9);doc.setFont('helvetica','bold');doc.setTextColor(...white);doc.text('Part 2B — Contractor Obligations (All Required)',M+3,y+5);y+=10;
+    const obs=['Client consent obtained before any client posting','Cio Bela branding removed from all platforms within 24 hours of contract termination','No negative, defamatory, or damaging content posted about Cio Bela'];
+    obs.forEach(o=>{
+      doc.setFillColor(...green);doc.rect(M,y-3,3,3,'F');
+      doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.text('✓  '+o,M+6,y);y+=7;
+    });
+    y+=8;
+
+    // Always permitted
+    doc.setFillColor(235,240,232);doc.rect(M,y,CW,16,'F');
+    doc.setDrawColor(...green);doc.setLineWidth(0.3);doc.line(M,y,M,y+16);
+    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(...green);
+    doc.text('Always Permitted for Contractor: Portfolio content of completed work · Salon aesthetic photos while active', M+4, y+6);
+    doc.text('Post-termination portfolio rights are retained by contractor indefinitely.', M+4, y+12);
+    y+=22;
+
+    // Signature
+    doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.setTextColor(...mid);doc.text('CONTRACTOR SIGNATURE',M,y);y+=4;
+    doc.setDrawColor(...mid);doc.setLineWidth(0.3);doc.rect(M,y,CW-50,26);
+    try{doc.addImage(sigImg,'PNG',M+1,y+1,CW-52,24);}catch(e){}
+    doc.rect(W-M-48,y,48,26);
+    doc.setFontSize(6.5);doc.setTextColor(...mid);doc.text('Date',W-M-46,y+5);
+    doc.setFontSize(8.5);doc.setFont('helvetica','normal');doc.setTextColor(...ink);doc.text(dateStr,W-M-46,y+12);
+    doc.setFontSize(7);doc.setTextColor(...mid);doc.text(timeStr,W-M-46,y+18);
+    y+=30;
+    doc.setFontSize(7);doc.setFont('helvetica','bold');doc.setTextColor(...mid);doc.text('PRINT NAME',M,y);y+=5;
+    doc.setFontSize(12);doc.setFont('helvetica','bold');doc.setTextColor(...ink);doc.text(sigName,M,y);y+=10;
+    doc.setFontSize(7.5);doc.setFont('helvetica','normal');doc.setTextColor(...mid);
+    const fn='This release is legally binding under the E-SIGN Act and Texas Uniform Electronic Transactions Act (TUETA). Montgomery County, TX jurisdiction applies.';
+    const fnL=doc.splitTextToSize(fn,CW);doc.text(fnL,M,y);
+
+    // Footers
+    const pc=doc.internal.getNumberOfPages();
+    for(let i=2;i<=pc;i++){
+      doc.setPage(i);
+      doc.setFillColor(...ink);doc.rect(0,H-10,W,10,'F');
+      doc.setFontSize(6.5);doc.setFont('helvetica','normal');doc.setTextColor(...gold);
+      doc.text('Cio Bela — Social Media & Photography Release  |  Confidential',M,H-4.5);
+      doc.setTextColor(...mid);doc.text('Page '+i+' of '+pc,W-M,H-4.5,{align:'right'});
+    }
+
+    doc.save('CioBela-PhotoRelease-'+name.replace(/\s+/g,'-')+'.pdf');
+  }catch(err){console.error('PDF error:',err);}
+
+  var sbEmail = document.getElementById('c-email').value.trim().toLowerCase();
+  if (sbEmail && window.supabase) {
+    try {
+      var db = window.supabase.createClient('https://cphlvgsneukrrzyajikb.supabase.co','sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC');
+      
+        var current = await db.from('contractor_progress').select('*').eq('contractor_email', emailLower);
+        var total = 0;
+        if (current.data && current.data.length > 0) {
+          var row = current.data[0];
+          row['release_signed'] = true;
+          var allF = ['contract_signed', 'payment_signed', 'w9_signed', 'standards_signed', 'id_uploaded', 'release_signed', 'emergency_signed'];
+          total = allF.filter(function(f){ return !!row[f]; }).length;
+        }
+        await db.from('contractor_progress').update({
+          release_signed: true,
+          total_complete: total,
+          onboarding_done: total >= 6
+        }).eq('contractor_email', emailLower);
+    } catch(e) { console.error('Supabase error:', e); }
+  }
+
+  document.querySelector('.hero').style.display='none';
+  document.querySelectorAll('.sec-label, .grant-card, .ob-card, .fg, hr.div').forEach(function(el){el.style.display='none';});
+  document.getElementById('success').style.display='block';
+  scrollTop();
+}
+
+function downloadPDF() {
+  try { submitRelease(); } catch(e) { alert('PDF download unavailable. Your release has been recorded.'); }
+}
+
+function returnToHub() {
+  var email = document.getElementById('c-email').value.trim();
+  var url = 'https://shawntyd.github.io/ciobela-hair-onboarding/cio-bela-hair-hub.html';
+  if (email) url += '?email=' + encodeURIComponent(email) + '&completed=release';
+  window.location.href = url;
+}
+</script>
+</body>
+</html>

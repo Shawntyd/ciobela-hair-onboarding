@@ -1,0 +1,1669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cio Bela — Hair Stylist Contractor Agreement</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --cream: #F7F3EE;
+    --warm: #EDE6DB;
+    --gold: #B89A6A;
+    --gold-light: #D4B896;
+    --ink: #1C1712;
+    --mid: #6B5E4E;
+    --blush: #E8D5C4;
+    --alert: #8B3A2A;
+    --alert-bg: #FDF0EC;
+    --green: #2D5A3D;
+    --green-bg: #EEF5F1;
+    --border: #D6CAB8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    height: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    scroll-snap-type: none !important;
+  }
+
+  body {
+    font-family: 'Jost', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    height: auto;
+    min-height: auto;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* ── HEADER ── */
+  header {
+    background: var(--ink);
+    color: var(--cream);
+    text-align: center;
+    padding: 32px 20px 28px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 3px solid var(--gold);
+  }
+  header .salon-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(18px, 4vw, 28px);
+    font-weight: 300;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+  }
+  header .doc-title {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--blush);
+    margin-top: 6px;
+    font-weight: 300;
+  }
+
+  /* ── PROGRESS BAR ── */
+  #progress-bar-wrap {
+    background: var(--warm);
+    border-bottom: 1px solid var(--border);
+    padding: 14px 20px;
+    position: sticky;
+    top: 97px;
+    z-index: 99;
+  }
+  .progress-steps {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    max-width: 700px;
+    margin: 0 auto;
+  }
+  .step-dot {
+    width: 28px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    transition: background 0.4s;
+  }
+  .step-dot.active { background: var(--gold); }
+  .step-dot.done { background: var(--gold-light); }
+  .progress-label {
+    text-align: center;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-top: 8px;
+  }
+
+  /* ── MAIN WRAPPER ── */
+  .container {
+    max-width: 780px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+
+  /* ── PAGES ── */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .page-header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .section-tag {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    font-weight: 500;
+    margin-bottom: 8px;
+  }
+  .page-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(24px, 5vw, 38px);
+    font-weight: 400;
+    line-height: 1.2;
+    color: var(--ink);
+  }
+  .page-subtitle {
+    font-size: 13px;
+    color: var(--mid);
+    margin-top: 8px;
+    font-weight: 300;
+    line-height: 1.7;
+  }
+
+  /* ── CONTRACT INFO BLOCK (page 0) ── */
+  .info-block {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 4px;
+    padding: 28px 32px;
+    margin-bottom: 24px;
+  }
+  .info-block .row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    font-weight: 300;
+    align-items: baseline;
+  }
+  .info-block .label {
+    font-size: 9px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    min-width: 110px;
+    padding-top: 2px;
+  }
+  .info-block .val { color: var(--cream); }
+
+  /* ── FORM FIELDS ── */
+  .field-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  .field-group.full { grid-template-columns: 1fr; }
+  .field-group.thirds { grid-template-columns: 1fr 1fr 1fr; }
+
+  @media(max-width: 520px) {
+    .field-group, .field-group.thirds { grid-template-columns: 1fr; }
+  }
+
+  .field label {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mid);
+    margin-bottom: 6px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 14px;
+    font-family: 'Jost', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    border-color: var(--gold);
+  }
+  .field textarea { min-height: 80px; resize: vertical; }
+
+  /* ── CLAUSE CARD ── */
+  .clause-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .clause-card .clause-head {
+    background: var(--warm);
+    padding: 12px 20px;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--mid);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .clause-card .clause-body {
+    padding: 18px 20px;
+    font-size: 13.5px;
+    line-height: 1.75;
+    color: var(--ink);
+    font-weight: 300;
+  }
+  .clause-card .clause-body strong {
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  /* ── ALERT HIGHLIGHT ── */
+  .alert-box {
+    background: var(--alert-bg);
+    border-left: 4px solid var(--alert);
+    border-radius: 0 4px 4px 0;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 13px;
+    color: var(--alert);
+    line-height: 1.65;
+    font-weight: 400;
+  }
+  .alert-box strong { font-weight: 700; }
+
+  /* ── SUCCESS HIGHLIGHT ── */
+  .green-box {
+    background: var(--green-bg);
+    border-left: 4px solid var(--green);
+    border-radius: 0 4px 4px 0;
+    padding: 14px 18px;
+    margin: 12px 0;
+    font-size: 13px;
+    color: var(--green);
+    line-height: 1.65;
+  }
+
+  /* ── CHECKBOX ITEMS ── */
+  .check-list { margin: 16px 0; }
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 14px 18px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+  .check-item:hover { border-color: var(--gold); }
+  .check-item.checked { border-color: var(--gold); background: #FFFBF6; }
+  .check-item input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    accent-color: var(--gold);
+    margin-top: 1px;
+    cursor: pointer;
+  }
+  .check-item .check-label {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: var(--ink);
+    font-weight: 300;
+  }
+  .check-item .check-label strong { font-weight: 600; }
+
+  /* ── SERVICES GRID ── */
+  .services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 10px;
+    margin: 16px 0;
+  }
+  .service-chip {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    font-weight: 300;
+  }
+  .service-chip:hover { border-color: var(--gold); }
+  .service-chip.checked { border-color: var(--gold); background: #FFFBF6; }
+  .service-chip input { accent-color: var(--gold); }
+
+  /* ── SIGNATURE ── */
+  .sig-area {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 20px;
+  }
+  .sig-label {
+    background: var(--warm);
+    padding: 10px 18px;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--mid);
+    font-weight: 500;
+  }
+  canvas#sigCanvas {
+    display: block;
+    width: 100%;
+    height: 180px;
+    cursor: crosshair;
+    touch-action: none;
+  }
+  .sig-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    padding: 8px 14px;
+    border-top: 1px solid var(--border);
+  }
+  .sig-clear {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--mid);
+    background: none;
+    border: 1px solid var(--border);
+    padding: 5px 14px;
+    border-radius: 2px;
+    cursor: pointer;
+    font-family: 'Jost', sans-serif;
+    transition: all 0.2s;
+  }
+  .sig-clear:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── BUTTONS ── */
+  .btn-row {
+    display: flex;
+    gap: 14px;
+    margin-top: 32px;
+    flex-wrap: wrap;
+  }
+  .btn-primary {
+    background: var(--gold);
+    color: #fff;
+    border: none;
+    padding: 14px 36px;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.2s;
+  }
+  .btn-primary:hover { background: var(--mid); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--mid);
+    border: 1px solid var(--border);
+    padding: 14px 28px;
+    font-family: 'Jost', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { border-color: var(--gold); color: var(--gold); }
+
+  /* ── SUCCESS SCREEN ── */
+  #success {
+    display: none;
+    text-align: center;
+    padding: 60px 20px;
+  }
+  #success.active { display: block; }
+  .success-icon {
+    width: 72px;
+    height: 72px;
+    background: var(--gold);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 28px;
+    font-size: 30px;
+  }
+  .success-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 400;
+    margin-bottom: 16px;
+  }
+  .success-body {
+    font-size: 14px;
+    color: var(--mid);
+    line-height: 1.8;
+    max-width: 480px;
+    margin: 0 auto 28px;
+    font-weight: 300;
+  }
+  .email-block {
+    background: var(--ink);
+    color: var(--gold-light);
+    padding: 18px 28px;
+    border-radius: 4px;
+    font-size: 15px;
+    letter-spacing: 0.05em;
+    display: inline-block;
+    margin-bottom: 28px;
+  }
+  .next-steps {
+    background: var(--warm);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px 28px;
+    max-width: 500px;
+    margin: 0 auto;
+    text-align: left;
+  }
+  .next-steps h4 {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+  }
+  .next-steps li {
+    font-size: 13px;
+    color: var(--ink);
+    margin-bottom: 10px;
+    padding-left: 16px;
+    position: relative;
+    font-weight: 300;
+    line-height: 1.6;
+    list-style: none;
+  }
+  .next-steps li::before {
+    content: '→';
+    position: absolute;
+    left: 0;
+    color: var(--gold);
+  }
+
+  /* ── MISC ── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 28px 0;
+  }
+  .meta-row {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin-top: 12px;
+  }
+  .meta-item {
+    font-size: 12px;
+    color: var(--mid);
+    font-weight: 300;
+  }
+  .meta-item strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .page-num {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--mid);
+    text-transform: uppercase;
+  }
+  .required-note {
+    font-size: 12px;
+    color: var(--mid);
+    margin-bottom: 20px;
+    font-weight: 300;
+  }
+  .required-note span { color: var(--alert); }
+
+  input.invalid, select.invalid { border-color: var(--alert) !important; }
+</style>
+</head>
+<body>
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+<a id="top-anchor" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<header>
+  <div class="salon-name">Cio Bela</div>
+  <div class="doc-title">Multi Service Salon, Spa &amp; Wellness Center — Hair Stylist Contractor Agreement</div>
+</header>
+
+<div id="progress-bar-wrap">
+  <div class="progress-steps" id="progress-steps"></div>
+  <div class="progress-label" id="progress-label"></div>
+</div>
+
+<div class="container">
+
+  <!-- ════════════════════════════════ PAGE 0 — INTRO ════════════════════════════════ -->
+  <div class="page active" id="page-0">
+    <div class="page-header">
+      <div class="section-tag">Master Agreement</div>
+      <h1 class="page-title">Booth Rental &amp; Independent Contractor Agreement</h1>
+      <p class="page-subtitle">Please read each section carefully. You must check every acknowledgment box before proceeding. This document is legally binding under Texas law.</p>
+    </div>
+
+    <div class="info-block">
+      <div class="row"><span class="label">Salon</span><span class="val">Cio Bela — Multi Service Salon, Spa &amp; Wellness Center LLC</span></div>
+      <div class="row"><span class="label">Address</span><span class="val">27327 Robinson Rd., Suites 3 &amp; 4, Oak Ridge North, TX 77385</span></div>
+      <div class="row"><span class="label">Jurisdiction</span><span class="val">Montgomery County, Texas</span></div>
+      <div class="row"><span class="label">Effective Date</span><span class="val" id="eff-date"></span></div>
+    </div>
+
+    <p class="required-note"><span>*</span> Required fields</p>
+
+    <div class="field-group">
+      <div class="field">
+        <label>Contractor Full Legal Name <span style="color:var(--alert)">*</span></label>
+        <input type="text" id="cont-name" placeholder="As it appears on your license">
+      </div>
+      <div class="field">
+        <label>Preferred Name / Stage Name</label>
+        <input type="text" id="cont-preferred" placeholder="Optional">
+      </div>
+    </div>
+    <div class="field-group thirds">
+      <div class="field">
+        <label>Phone Number <span style="color:var(--alert)">*</span></label>
+        <input type="tel" id="cont-phone" placeholder="(xxx) xxx-xxxx">
+      </div>
+      <div class="field">
+        <label>Email Address <span style="color:var(--alert)">*</span></label>
+        <input type="email" id="cont-email" placeholder="your@email.com">
+      </div>
+      <div class="field">
+        <label>Date of Birth <span style="color:var(--alert)">*</span></label>
+        <input type="date" id="cont-dob">
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field">
+        <label>Texas Cosmetology Operator / Barber License # <span style="color:var(--alert)">*</span></label>
+        <input type="text" id="cont-license" placeholder="TX-XXXXXXXX">
+      </div>
+      <div class="field">
+        <label>License Expiration Date <span style="color:var(--alert)">*</span></label>
+        <input type="date" id="cont-lic-exp">
+      </div>
+    </div>
+    <div class="field-group full">
+      <div class="field">
+        <label>Home / Mailing Address <span style="color:var(--alert)">*</span></label>
+        <input type="text" id="cont-address" placeholder="Street, City, State, ZIP">
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field">
+        <label>Emergency Contact Name <span style="color:var(--alert)">*</span></label>
+        <input type="text" id="emerg-name" placeholder="Full name">
+      </div>
+      <div class="field">
+        <label>Emergency Contact Phone <span style="color:var(--alert)">*</span></label>
+        <input type="tel" id="emerg-phone" placeholder="(xxx) xxx-xxxx">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="goTo(1)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ PAGE 1 — CONTRACTOR STATUS ════════════════════════════════ -->
+  <div class="page" id="page-1">
+    <div class="page-header">
+      <div class="section-tag">Section I</div>
+      <h1 class="page-title">Status of the Parties</h1>
+      <p class="page-subtitle">This section establishes your classification as an independent contractor, not an employee of Cio Bela. Review each clause and check the box to confirm your understanding.</p>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>1.1 — Economic Independence</span></div>
+      <div class="clause-body">
+        Contractor warrants that they are an independent business entity, in business for themselves, and not economically dependent upon the Salon. Contractor retains full authority over their own pricing, scheduling, and client relationships, within the bounds of this Agreement and Cio Bela Brand Standards.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>1.2 — Tools of the Trade</span></div>
+      <div class="clause-body">
+        The Salon provides the <em>licensed space</em>, shampoo bowls, and shared salon equipment available to the hair stylist team. <strong>Each stylist supplies and maintains their own professional tools</strong> — including shears, clippers, razors, combs, brushes, flat irons, curling irons, and blow dryers — and all color, chemical, and styling products used on their own clients. Shared consumables — including capes, towels, neck strips, and cleaning supplies — are shared among the hair stylist team. <strong>The cost of replenishing shared consumable inventory is divided equally among all active hair stylists</strong> when restocking is required.
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <strong>⚠ Important:</strong> Bringing in or using another artist's tools or supplies without explicit written permission is a violation of this Agreement and may result in immediate termination.
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>1.3 — No Employee Benefits / Waiver of Claims</span></div>
+      <div class="clause-body">
+        Contractor is not an employee of Cio Bela and is not entitled to any Salon-paid benefits, including but not limited to: health insurance, dental/vision coverage, 401(k) or retirement plans, paid time off, workers' compensation, or unemployment benefits. Contractor explicitly waives any claim to such benefits under Texas law for the duration of this Agreement.
+      </div>
+    </div>
+
+    <div class="check-list" id="checks-1">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I understand and agree that I am an <strong>independent contractor</strong>, not an employee of Cio Bela, and I make no claim to employee status.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I understand that shampoo bowls and shared salon equipment are provided by the Salon, and that I supply and maintain my own professional tools and products. I agree to share equally in the cost of replenishing shared consumables with the hair stylist team.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I acknowledge I am <strong>not entitled to health insurance, 401(k), workers' comp, PTO, or unemployment benefits</strong> through Cio Bela, and I waive all such claims.</span>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(0)">&larr; Back</button>
+      <button class="btn-primary" onclick="goTo(2)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ PAGE 2 — FINANCIALS ════════════════════════════════ -->
+  <div class="page" id="page-2">
+    <div class="page-header">
+      <div class="section-tag">Section II</div>
+      <h1 class="page-title">Financials &amp; Billing</h1>
+      <p class="page-subtitle">This section covers automatic payment authorization and the salon's self-help remedies for non-payment or standard violations.</p>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>2.1 — Saturday Auto-Pay Authorization</span></div>
+      <div class="clause-body">
+        Contractor <strong>authorizes the Salon to charge the card on file every Saturday</strong> for the following week's service fee. The service fee is earned upon receipt. No refunds or pro-rating shall be granted for vacation, personal time off, illness, or any other reason. Contractor is responsible for maintaining a valid payment method on file at all times.
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <strong>⚠ Non-Payment:</strong> Failure to maintain a valid payment method, or a declined charge that goes unresolved by Sunday midnight, constitutes a default under this Agreement and may trigger immediate lockout per Section VI.
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>2.2 — Tier Sovereignty</span></div>
+      <div class="clause-body">
+        Transition between rental tiers is at the <strong>sole and absolute discretion of Salon Management</strong>. Tier changes will be communicated no less than 7 days in advance unless the change results from a material breach of this Agreement.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>2.3 — Self-Help Right (Maintenance &amp; Restoration)</span></div>
+      <div class="clause-body">
+        If Contractor fails to maintain their station in accordance with Cio Bela Brand Standards, the Salon may, <strong>without further notice</strong>, engage professional cleaners, repair technicians, or replacement vendors and automatically charge the Contractor's card on file for the <strong>full cost of restoration</strong>. This includes but is not limited to: deep cleaning, repair of salon property, replacement of damaged equipment or fixtures.
+      </div>
+    </div>
+
+    <div class="green-box">
+      <strong>Your Responsibility:</strong> Keep your station clean, organized, and brand-compliant at the end of every shift. Think of it as your own business — because it is.
+    </div>
+
+    <div class="check-list">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I authorize Cio Bela to charge my card on file <strong>every Saturday</strong> for the following week's booth rent, and I understand <strong>no refunds or pro-rating</strong> will be given.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I understand that <strong>tier changes are at management's discretion</strong> and agree to the associated rate adjustment.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I authorize the Salon to charge my card for <strong>professional cleaning or restoration</strong> costs if my station does not meet brand standards.</span>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(1)">&larr; Back</button>
+      <button class="btn-primary" onclick="goTo(3)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ PAGE 3 — TDLR & COMPLIANCE ════════════════════════════════ -->
+  <div class="page" id="page-3">
+    <div class="page-header">
+      <div class="section-tag">Section III</div>
+      <h1 class="page-title">TDLR &amp; Legal Compliance</h1>
+      <p class="page-subtitle">Texas law requires strict compliance with TDLR regulations. The following obligations are non-negotiable and apply to all contractors operating within Cio Bela.</p>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>3.1 — Lawful Presence Warranty (Effective May 1, 2026)</span></div>
+      <div class="clause-body">
+        Per updated TDLR rules effective May 1, 2026, Contractor <strong>warrants they meet all citizenship and residency requirements</strong> for Texas cosmetology or barber license eligibility. Contractor must maintain an <strong>active, valid Texas Cosmetology Operator or Barber license</strong> at all times and must have it <strong>physically displayed at their station</strong> during all working hours. An expired or suspended license is grounds for immediate suspension from the premises.
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <strong>⚠ Zero Tolerance:</strong> Operating in the salon with an expired, suspended, or revoked license is a violation of Texas law and this Agreement. It will result in immediate removal from the premises and potential termination of this contract without refund.
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>3.2 — Sanitation &amp; Cross-Contamination (Tool Disinfection)</span></div>
+      <div class="clause-body">
+        <strong>Combs, brushes, shears, clippers, razors, and all multi-use tools must be cleaned and disinfected between every client</strong> on Cio Bela premises. Single-use items (neck strips, razor blades, foils) must be discarded after one use, and capes and towels must be freshly laundered for each client. Using an unsanitized tool on a client is a cross-contamination violation under TDLR sanitation standards and poses serious health risks. Only EPA-registered, TDLR-approved disinfectants may be used on all surfaces and equipment between every client. Violation of this clause constitutes grounds for <strong>immediate lockout</strong>.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>3.3 — CROWN Act &amp; Professionalism Standards</span></div>
+      <div class="clause-body">
+        Contractor shall comply with all Texas and federal anti-discrimination laws, including the CROWN Act. Cio Bela operates as an inclusive, welcoming environment. While the Salon does not control your service methodology, you agree to maintain the <strong>Warm Minimalism Brand Aesthetic Standard</strong> within and around the facility — including attire, music volume, and station presentation.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>3.4 — Sanitation Mandate</span></div>
+      <div class="clause-body">
+        Contractor is <strong>100% solely liable</strong> for any station-specific TDLR fines or citations resulting from improper sanitation. You must use <strong>EPA-registered, TDLR-approved disinfectants</strong> on all implements between every client. Implements must be properly stored in sealed containers or UV sterilization cases. Contaminated implements must be discarded immediately per TDLR protocol.
+      </div>
+    </div>
+
+    <div class="check-list">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I confirm I hold a current, valid Texas Cosmetology Operator or Barber license and will keep it <strong>physically displayed at my station</strong> at all times.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I confirm I will <strong>disinfect all tools between every client</strong> and will never use any TDLR-prohibited practices on Cio Bela premises.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I understand I am <strong>fully responsible for all TDLR fines</strong> arising from my station and will use EPA-registered disinfectants on all implements between every client.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I agree to comply with all anti-discrimination laws and maintain the <strong>Cio Bela Warm Minimalism Brand Standard</strong> in my appearance, music, and station presentation.</span>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(2)">&larr; Back</button>
+      <button class="btn-primary" onclick="goTo(4)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ PAGE 4 — SERVICES OFFERED ════════════════════════════════ -->
+  <div class="page" id="page-4">
+    <div class="page-header">
+      <div class="section-tag">Section IV</div>
+      <h1 class="page-title">Services Offered</h1>
+      <p class="page-subtitle">Select all hair services you are licensed and trained to perform. This information helps Cio Bela market your skills and is included in your digital profile.</p>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>Service Representation Warranty</span></div>
+      <div class="clause-body">
+        Contractor warrants that they are <strong>properly trained, licensed (where required), and competent</strong> to perform any service they represent to clients. Misrepresenting your skill level or performing services outside your training is a violation of TDLR regulations and this Agreement. Cio Bela reserves the right to require proof of training or certification for specialty services at any time.
+      </div>
+    </div>
+
+    <p style="font-size:12px;color:var(--mid);margin:16px 0 8px;letter-spacing:0.1em;text-transform:uppercase;">Select all that apply</p>
+
+    <div class="services-grid">
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Women's Haircut</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Men's Haircut</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Children's Haircut</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Blowout / Styling</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Silk Press</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Wash &amp; Set / Roller Set</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Curling / Flat Iron Style</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Updo / Special Event Style</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Bridal Hair</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Single-Process Color</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Root Touch-Up</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Highlights / Foils</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Balayage / Hand-Painted</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Ombre / Color Melt</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Fashion / Vivid Color</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Color Correction</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Toner / Gloss</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Lightening / Bleach</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Keratin / Smoothing Treatment</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Relaxer</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Perm / Texturizer</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Deep Conditioning Treatment</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Scalp Treatment</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Natural Hair Styling</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Braids (Box / Knotless)</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Twists / Locs Maintenance</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Sew-In Weave</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Tape-In Extensions</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Hand-Tied / Fusion Extensions</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Wig Install / Styling</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Beard Trim / Shape-Up</label>
+      <label class="service-chip" onclick="toggleChip(this)"><input type="checkbox"> Razor Cut / Fade</label>
+    </div>
+
+    <div class="field-group full" style="margin-top:20px;">
+      <div class="field">
+        <label>Additional Specialty Services (if not listed above)</label>
+        <textarea id="extra-services" placeholder="Describe any additional services you offer..."></textarea>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field">
+        <label>Years of Experience <span style="color:var(--alert)">*</span></label>
+        <select id="yoe">
+          <option value="">— Select —</option>
+          <option>Less than 1 year</option>
+          <option>1–2 years</option>
+          <option>3–5 years</option>
+          <option>6–10 years</option>
+          <option>10+ years</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Specialty / Niche Style</label>
+        <input type="text" id="specialty" placeholder="e.g. Color Specialist, Curl Specialist, Barbering, Extensions">
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(3)">&larr; Back</button>
+      <button class="btn-primary" onclick="goTo(5)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ PAGE 5 — DATA & TRADE SECRETS ════════════════════════════════ -->
+  <div class="page" id="page-5">
+    <div class="page-header">
+      <div class="section-tag">Section V</div>
+      <h1 class="page-title">Data Sovereignty &amp; Trade Secrets</h1>
+      <p class="page-subtitle">Cio Bela's client data and branding are proprietary assets protected under Texas law. This section outlines your obligations regarding confidentiality and brand representation.</p>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>5.1 — Exclusive Ownership of Client Data</span></div>
+      <div class="clause-body">
+        All client data contained within the Salon's digital booking system — including but not limited to <strong>client names, phone numbers, email addresses, service history, and appointment records</strong> — is the exclusive Trade Secret property of Cio Bela. This data was generated through the Salon's marketing efforts, reputation, and resources. Contractor has <em>no ownership interest</em> in Salon client data, even for clients the Contractor personally services.
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <strong>Note:</strong> This prohibition applies exclusively to clients who were sourced through Cio Bela's booking platform, marketing, or referral network. Contractor retains full rights to their pre-existing personal clientele. Any unauthorized solicitation of <em>Salon-sourced</em> clients shall result in <strong>$2,500 in Liquidated Damages per instance</strong>, payable immediately, in addition to any equitable relief the Salon may seek in a Montgomery County court.
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>5.2 — Client Solicitation Prohibition</span></div>
+      <div class="clause-body">
+        During the term of this Agreement and for a period of <strong>12 months following termination</strong>, Contractor shall not directly or indirectly solicit or encourage any Cio Bela client to transfer their patronage to any other salon, independent studio, or location where Contractor operates. This applies to solicitation via text, DM, social media, email, or in-person communication.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>5.3 — Social Media Branding Policy</span></div>
+      <div class="clause-body">
+        Contractor may use "Cio Bela" in their social media profiles and content while actively contracted. Upon <strong>termination or resignation</strong>, Contractor must <strong>remove all references to "Cio Bela"</strong> from their social media bios, highlights, and profile descriptions within <strong>24 hours</strong>. Failure to comply constitutes Brand Infringement and is subject to legal action. Contractor may, however, retain portfolio content of work performed at the salon without explicit branding language.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>5.4 — Booking Platform Policy</span></div>
+      <div class="clause-body">
+        All client appointments at Cio Bela must be booked exclusively through the <strong>Salon's designated booking platform</strong>. Directing Salon clients to third-party booking platforms, personal booking links (Vagaro, Square, Fresha, etc.), or cash-only arrangements to circumvent the Salon's system is prohibited and constitutes a material breach of this Agreement.
+      </div>
+    </div>
+
+    <div class="check-list">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I acknowledge that <strong>all client data in Cio Bela's booking system is the Salon's exclusive property</strong>, and I have no ownership claim to it.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I agree to remove <strong>all "Cio Bela" branding</strong> from my social media within 24 hours of termination or resignation.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I agree to use <strong>only Cio Bela's designated booking platform</strong> for all client appointments booked through the Salon.</span>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(4)">&larr; Back</button>
+      <button class="btn-primary" onclick="goTo(6)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ PAGE 6 — LIABILITY ════════════════════════════════ -->
+  <div class="page" id="page-6">
+    <div class="page-header">
+      <div class="section-tag">Section VI</div>
+      <h1 class="page-title">Liability &amp; Occupational Risk</h1>
+      <p class="page-subtitle">As an independent contractor, you assume full liability for your services, workspace, and occupational health. Review each clause carefully.</p>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>6.1 — Occupational Health &amp; Toxic Tort Waiver</span></div>
+      <div class="clause-body">
+        Contractor acknowledges the inherent occupational health risks associated with hair services, including but not limited to: <strong>chemical exposure (hair color, bleach, relaxers, perm solutions, and styling products), airborne dust and fumes, repetitive motion injury, heat-tool burns, and skin sensitization</strong>. Contractor assumes all such occupational health risks and <strong>waives all future claims</strong> against Cio Bela for any respiratory, dermatological, or other health conditions related to the performance of their trade within this facility. Contractor is strongly encouraged to use appropriate PPE including gloves, aprons, and protective eyewear, to follow all Safety Data Sheet (SDS) instructions for chemical products, and to maintain proper ventilation.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>6.2 — Client Service Liability</span></div>
+      <div class="clause-body">
+        Contractor is <strong>solely and exclusively liable</strong> for all services performed on clients, including but not limited to: chemical burns, scalp burns from heat tools, allergic reactions, adverse reactions to color, bleach, or relaxer products, hair damage or breakage, infections arising from sanitation failures, or any physical harm resulting from services. Contractor must ensure a signed <strong>Professional Service Waiver is on file for every client for every appointment</strong>. Contractor is <strong>strongly encouraged</strong> to maintain independent professional liability (malpractice) insurance. Cio Bela bears no responsibility for any service-related injury or claim arising from Contractor's work.
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <strong>⚠ Insurance Recommendation:</strong> While not mandatory, Cio Bela strongly recommends that all contractors carry professional liability insurance (typically $100–$300/year through providers like Beauty Professionals Insurance or Hiscox). This protects you personally in the event of a client claim.
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>6.3 — Indemnification</span></div>
+      <div class="clause-body">
+        Contractor shall <strong>defend, indemnify, and hold harmless</strong> Cio Bela — multi service salon, spa &amp; wellness center LLC, its owners, managers, agents, and employees — from and against any and all claims, damages, lawsuits, losses, costs, and attorneys' fees arising out of or related to: (a) any services performed by Contractor; (b) any injury, accident, or incident occurring within or near Contractor's station; or (c) any act or omission of Contractor or Contractor's clients.
+      </div>
+    </div>
+
+    <div class="check-list">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I acknowledge the <strong>occupational health risks</strong> of hair services and waive all future claims against Cio Bela for health conditions related to my trade.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I accept <strong>sole liability</strong> for all services I perform on clients and agree to indemnify and hold Cio Bela harmless from any related claims.</span>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(5)">&larr; Back</button>
+      <button class="btn-primary" onclick="goTo(7)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ PAGE 7 — TERMINATION ════════════════════════════════ -->
+  <div class="page" id="page-7">
+    <div class="page-header">
+      <div class="section-tag">Section VII</div>
+      <h1 class="page-title">Termination &amp; Lockout Rights</h1>
+      <p class="page-subtitle">This section outlines the conditions under which the Salon may suspend, lockout, or terminate a contractor. Read each clause carefully — these provisions are immediately enforceable.</p>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>7.1 — Immediate Lockout Conditions</span></div>
+      <div class="clause-body">
+        Per <strong>Texas Property Code § 93.002</strong>, Salon reserves the right to execute an <strong>immediate lockout and disable all digital access credentials</strong> — without advance notice — under the following conditions:
+        <ul style="margin:12px 0 0 20px; line-height:2;">
+          <li>Failure to pay service fee by <strong>Saturday midnight</strong></li>
+          <li>Sanitation violations or use of other TDLR-banned practices</li>
+          <li>Conduct that causes direct harm to the Salon's reputation, staff, or clients</li>
+          <li>Operating with an expired, suspended, or revoked Texas license</li>
+          <li>Physical altercation or verbal abuse directed at staff, management, or clients</li>
+          <li>Material breach of any provision of this Agreement</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="alert-box">
+      <strong>⚠ No Cure Period for Immediate Violations:</strong> Certain violations — including non-payment, sanitation violations, and conduct violations — do not require a cure period. Lockout may be executed the same day the violation is confirmed.
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>7.2 — Voluntary Termination / Resignation</span></div>
+      <div class="clause-body">
+        Contractor agrees to provide <strong>30 days written notice</strong> of resignation via email to the Salon's official email address. Early departure without proper notice may affect references or future standing with Cio Bela management.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>7.3 — Guest &amp; Visitor Policy</span></div>
+      <div class="clause-body">
+        Contractor understands that Cio Bela is a professional service environment. While brief personal visits from friends or family are permitted, <strong>guests may not remain on premises for extended periods of time</strong>. Guests may come in for a service or stop by briefly to say hello, but may not linger at the Contractor's workspace, occupy client seating, or remain in the salon for hours at a time. This applies to children, family members, and personal friends alike. Cio Bela does not have the space to accommodate extended personal visits, and management reserves the right to ask guests to leave if their presence disrupts the professional environment.
+      </div>
+    </div>
+
+    <div class="clause-card">
+      <div class="clause-head"><span>7.3 — Legal &amp; Dispute Resolution</span></div>
+      <div class="clause-body">
+        <strong>Attorneys' Fees:</strong> In any dispute arising under this Agreement, the prevailing party — with priority rights reserved for Cio Bela — shall recover all reasonable attorneys' fees and court costs. All disputes shall be resolved in <strong>Montgomery County, Texas</strong>.<br><br>
+        <strong>Digital Service:</strong> Service of legal papers, notices, and official communications via the Contractor's email address on file is deemed "Official Legal Service" under Texas rules and is as legally effective as personal service.
+      </div>
+    </div>
+
+    <div class="check-list">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I understand that <strong>immediate lockout</strong> may be executed without notice for non-payment, sanitation violations, license violations, or conduct violations.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I agree to provide <strong>30 days written notice</strong> of resignation via email to Cio Bela management.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I consent to <strong>email being used as official legal service</strong> and agree that all disputes will be resolved in Montgomery County, Texas.</span>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(6)">&larr; Back</button>
+      <button class="btn-primary" onclick="goTo(8)">Continue &rarr;</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ PAGE 8 — SIGNATURE ════════════════════════════════ -->
+  <div class="page" id="page-8">
+    <div class="page-header">
+      <div class="section-tag">Section VIII — Final Step</div>
+      <h1 class="page-title">Review &amp; Sign</h1>
+      <p class="page-subtitle">By signing below, you confirm that you have read, understood, and agreed to all terms of this Master Booth Rental &amp; Independent Contractor Agreement with Cio Bela.</p>
+    </div>
+
+    <div class="info-block" style="margin-bottom:24px;">
+      <div class="row"><span class="label">Contractor</span><span class="val" id="review-name">—</span></div>
+      <div class="row"><span class="label">License #</span><span class="val" id="review-license">—</span></div>
+      <div class="row"><span class="label">Email</span><span class="val" id="review-email">—</span></div>
+      <div class="row"><span class="label">Agreement Date</span><span class="val" id="review-date">—</span></div>
+      <div class="row"><span class="label">Time of Signing</span><span class="val" id="review-time">—</span></div>
+    </div>
+
+    <div class="field-group full">
+      <div class="field">
+        <label>Full Legal Name (Type to confirm) <span style="color:var(--alert)">*</span></label>
+        <input type="text" id="sig-name" placeholder="Type your full legal name exactly">
+      </div>
+    </div>
+
+    <div class="sig-area">
+      <div class="sig-label">Draw Your Signature Below</div>
+      <canvas id="sigCanvas"></canvas>
+      <div class="sig-toolbar">
+        <button class="sig-clear" onclick="clearSig()">Clear Signature</button>
+      </div>
+    </div>
+
+    <div class="green-box">
+      <strong>Legal Notice:</strong> This electronic signature is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA). By signing, you agree to all terms contained in this Agreement.
+    </div>
+
+    <div class="check-list">
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I have <strong>read and understand every section</strong> of this Agreement and agree to be legally bound by its terms.</span>
+      </label>
+      <label class="check-item" onclick="toggleCheck(this)">
+        <input type="checkbox" data-req="true">
+        <span class="check-label">I confirm that all information I have provided is <strong>accurate and truthful</strong>.</span>
+      </label>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goTo(7)">&larr; Back</button>
+      <button class="btn-primary" onclick="submitContract()">Submit &amp; Generate PDF</button>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════ SUCCESS ════════════════════════════════ -->
+  <div id="success">
+    <div class="success-icon">✓</div>
+    <h2 class="success-title">Agreement Signed!</h2>
+    <p class="success-body">Your completion has been recorded. Now do these two steps:</p>
+
+    <div style="background:#1C1712;border-radius:4px;padding:20px 24px;max-width:400px;margin:20px auto;text-align:left;">
+      <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B89A6A;margin-bottom:14px;font-weight:600;">Step 1 of 2</p>
+      <p style="font-size:14px;color:#F7F3EE;margin-bottom:16px;line-height:1.6;">Tap the button below to download your signed PDF.</p>
+      <button onclick="downloadPDF()" style="display:block;width:100%;background:#B89A6A;color:#fff;border:none;padding:16px 32px;font-family:'Jost',sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;">⬇ Download My Signed PDF</button>
+    </div>
+
+    <div style="background:#F7F3EE;border:1px solid #D4C4B0;border-radius:4px;padding:20px 24px;max-width:400px;margin:16px auto;text-align:left;">
+      <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B89A6A;margin-bottom:10px;font-weight:600;">Step 2 of 2</p>
+      <p style="font-size:13px;color:#6B5E4E;line-height:1.7;">Email the PDF you just downloaded to:<br><strong style="color:#1C1712;font-size:14px;">ciobelasalons@yahoo.com</strong></p>
+    </div>
+
+    <button onclick="returnToHub()" style="display:block;width:100%;max-width:400px;margin:20px auto 12px;background:#2D5A3D;color:#fff;border:none;padding:18px 32px;font-family:'Jost',sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:3px;">← Return to Onboarding Checklist</button>
+    <p style="font-size:11px;color:#A0927E;text-align:center;max-width:360px;margin:0 auto 24px;">Complete steps 1 and 2 before returning to the checklist.</p>
+  </div>
+
+</div><!-- /container -->
+
+<script>
+  // ── PAGES CONFIG ──
+  const PAGE_TITLES = [
+    'Contractor Info',
+    'Contractor Status',
+    'Financials & Billing',
+    'TDLR Compliance',
+    'Services Offered',
+    'Data & Trade Secrets',
+    'Liability',
+    'Termination',
+    'Signature'
+  ];
+  const TOTAL = PAGE_TITLES.length;
+  let currentPage = 0;
+
+  // ── INIT ──
+  window.addEventListener('DOMContentLoaded', () => {
+    try { window.scrollTo(0,0); } catch(e) {}
+    try { document.documentElement.scrollTop=0; } catch(e) {}
+    try { document.body.scrollTop=0; } catch(e) {}
+    // Set effective date
+    const now = new Date();
+    document.getElementById('eff-date').textContent = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+
+    // Build progress dots
+    const wrap = document.getElementById('progress-steps');
+    for (let i = 0; i < TOTAL; i++) {
+      const d = document.createElement('div');
+      d.className = 'step-dot' + (i === 0 ? ' active' : '');
+      d.id = 'dot-' + i;
+      wrap.appendChild(d);
+    }
+    updateProgress();
+    initSig();
+
+    // ── SUPABASE AUTO-FILL ──
+    var SUPA_URL = 'https://cphlvgsneukrrzyajikb.supabase.co';
+    var SUPA_KEY = 'sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC';
+
+    function fillFields(p) {
+      var set = function(id, val) { var el = document.getElementById(id); if (el && val) el.value = val; };
+      set('cont-name',    p.full_name);
+      set('cont-phone',   p.phone);
+      set('cont-email',   p.email);
+      set('cont-dob',     p.date_of_birth);
+      set('cont-license', p.license_number);
+      set('cont-lic-exp', p.license_expiration);
+      set('cont-address', p.address);
+      set('emerg-name',   p.emergency_name);
+      set('emerg-phone',  p.emergency_phone);
+    }
+
+    // Try sessionStorage first (same device, instant)
+    try {
+      var cached = sessionStorage.getItem('cb_prefill');
+      if (cached) {
+        var cp = JSON.parse(cached);
+        // Map from hub format to Supabase format
+        fillFields({
+          full_name: cp.fullName, phone: cp.phone, email: cp.email,
+          date_of_birth: cp.dateOfBirth, license_number: cp.licenseNumber,
+          license_expiration: cp.licenseExpiration, address: cp.address,
+          emergency_name: cp.emergencyName, emergency_phone: cp.emergencyPhone
+        });
+        return;
+      }
+    } catch(e) {}
+
+    // Try URL email param + Supabase
+    var params = new URLSearchParams(window.location.search);
+    var email = params.get('email');
+    if (email && window.supabase) {
+      var db = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+      db.from('contractor_profiles').select('*').eq('email', email.toLowerCase().trim())
+        .then(function(res) {
+          if (res.data && res.data.length > 0) fillFields(res.data[0]);
+        });
+    }
+  });
+
+  function updateProgress() {
+    for (let i = 0; i < TOTAL; i++) {
+      const d = document.getElementById('dot-' + i);
+      d.className = 'step-dot' + (i < currentPage ? ' done' : i === currentPage ? ' active' : '');
+    }
+    document.getElementById('progress-label').textContent =
+      `Step ${currentPage + 1} of ${TOTAL} — ${PAGE_TITLES[currentPage]}`;
+  }
+
+  function goTo(n) {
+    if (n > currentPage && !validatePage(currentPage)) return;
+    document.getElementById('page-' + currentPage).classList.remove('active');
+    currentPage = n;
+    document.getElementById('page-' + n).classList.add('active');
+    updateProgress();
+
+    // Use anchor navigation — most reliable scroll method on mobile
+    window.location.hash = '';
+    window.location.hash = 'top-anchor';
+
+    if (n === 8) {
+      populateReview();
+      // Reinitialize signature canvas now that it's visible
+      setTimeout(function() {
+        if (sigCanvas) {
+          var w = sigCanvas.parentElement ? sigCanvas.parentElement.offsetWidth || 300 : 300;
+          sigCanvas.width = w;
+          sigCanvas.height = 160;
+          sigCtx.strokeStyle = '#1C1712';
+          sigCtx.lineWidth = 2.5;
+          sigCtx.lineCap = 'round';
+          sigCtx.lineJoin = 'round';
+          hasSig = false;
+        }
+      }, 50);
+    }
+  }
+
+  // ── VALIDATION ──
+  function validatePage(p) {
+    if (p === 0) {
+      const fields = ['cont-name','cont-phone','cont-email','cont-dob','cont-license','cont-lic-exp','cont-address','emerg-name','emerg-phone'];
+      let ok = true;
+      fields.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el.value.trim()) { el.classList.add('invalid'); ok = false; }
+        else el.classList.remove('invalid');
+      });
+      if (!ok) { alert('Please complete all required fields before continuing.'); return false; }
+    }
+    if (p === 2) {
+      // No rate field — page 2 only requires checkbox acknowledgments
+    }
+    if (p === 4) {
+      const yoe = document.getElementById('yoe');
+      if (!yoe.value) { yoe.classList.add('invalid'); alert('Please select your years of experience.'); return false; }
+      yoe.classList.remove('invalid');
+    }
+    // Check required checkboxes on all pages
+    const page = document.getElementById('page-' + p);
+    const reqBoxes = page.querySelectorAll('input[type="checkbox"][data-req="true"]');
+    for (let cb of reqBoxes) {
+      if (!cb.checked) {
+        alert('Please check all acknowledgment boxes before continuing.'); return false;
+      }
+    }
+    return true;
+  }
+
+  // ── CHECKBOX HELPERS ──
+  function toggleCheck(label) {
+    const cb = label.querySelector('input[type="checkbox"]');
+    // let native checkbox handle state; just update style
+    setTimeout(() => {
+      label.classList.toggle('checked', cb.checked);
+    }, 0);
+  }
+  function toggleChip(label) {
+    const cb = label.querySelector('input[type="checkbox"]');
+    setTimeout(() => label.classList.toggle('checked', cb.checked), 0);
+  }
+
+  // ── REVIEW POPULATE ──
+  function populateReview() {
+    const now = new Date();
+    document.getElementById('review-name').textContent = document.getElementById('cont-name').value || '—';
+    document.getElementById('review-license').textContent = document.getElementById('cont-license').value || '—';
+    document.getElementById('review-email').textContent = document.getElementById('cont-email').value || '—';
+    document.getElementById('review-date').textContent = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    document.getElementById('review-time').textContent = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
+  }
+
+  // ── SIGNATURE ──
+  let sigCanvas, sigCtx, drawing = false, hasSig = false;
+
+  function initSig() {
+    sigCanvas = document.getElementById('sigCanvas');
+    sigCtx = sigCanvas.getContext('2d');
+
+    function setupCanvas() {
+      // Set a fixed pixel size — don't rely on getBoundingClientRect when hidden
+      var w = sigCanvas.parentElement ? sigCanvas.parentElement.offsetWidth || 300 : 300;
+      sigCanvas.style.width = '100%';
+      sigCanvas.style.height = '160px';
+      sigCanvas.width = w;
+      sigCanvas.height = 160;
+      sigCtx.strokeStyle = '#1C1712';
+      sigCtx.lineWidth = 2.5;
+      sigCtx.lineCap = 'round';
+      sigCtx.lineJoin = 'round';
+    }
+    setupCanvas();
+    // Re-setup when signature page becomes visible
+    window.addEventListener('resize', setupCanvas);
+
+    var getPos = function(e) {
+      var r = sigCanvas.getBoundingClientRect();
+      var src = e.touches ? e.touches[0] : e;
+      return { x: src.clientX - r.left, y: src.clientY - r.top };
+    };
+
+    sigCanvas.addEventListener('mousedown', function(e) { drawing = true; var p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); });
+    sigCanvas.addEventListener('mousemove', function(e) { if (!drawing) return; hasSig = true; var p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); });
+    sigCanvas.addEventListener('mouseup', function() { drawing = false; });
+    sigCanvas.addEventListener('mouseleave', function() { drawing = false; });
+    sigCanvas.addEventListener('touchstart', function(e) { e.preventDefault(); drawing = true; var p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); }, { passive: false });
+    sigCanvas.addEventListener('touchmove', function(e) { e.preventDefault(); if (!drawing) return; hasSig = true; var p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); }, { passive: false });
+    sigCanvas.addEventListener('touchend', function() { drawing = false; });
+  }
+
+  function clearSig() {
+    if (sigCtx && sigCanvas) {
+      sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height);
+      hasSig = false;
+    }
+  }
+
+  // ── SUBMIT & PDF ──
+  async function generateAndDownloadPDF() {
+    const sigName = _sigName || document.getElementById('sig-name').value.trim();
+    const sigImage = sigCanvas ? sigCanvas.toDataURL('image/png') : '';
+    const now = new Date();
+    const dateStr = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
+    const chips = document.querySelectorAll('.service-chip input:checked');
+    const services = Array.from(chips).map(c => c.parentElement.textContent.trim());
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+      const W = 215.9, H = 279.4, M = 18, CW = W - M * 2;
+      const gold = [184, 154, 106], ink = [28, 23, 18], mid = [107, 94, 78], cream = [247, 243, 238], warm = [237, 230, 219];
+
+      let y = 0;
+
+      function newPage() {
+        doc.addPage();
+        y = 20;
+        // top rule
+        doc.setDrawColor(...gold); doc.setLineWidth(0.8); doc.line(M, 14, W - M, 14);
+      }
+
+      function checkSpace(needed) {
+        if (y + needed > H - 24) newPage();
+      }
+
+      function sectionHeader(title) {
+        checkSpace(14);
+        doc.setFillColor(...warm); doc.rect(M, y, CW, 8, 'F');
+        doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(...mid);
+        doc.text(title.toUpperCase(), M + 4, y + 5.5);
+        y += 12;
+      }
+
+      function bodyText(txt, indent = 0) {
+        doc.setFontSize(9.5); doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+        const lines = doc.splitTextToSize(txt, CW - indent);
+        checkSpace(lines.length * 5.5);
+        doc.text(lines, M + indent, y);
+        y += lines.length * 5.5 + 3;
+      }
+
+      function clauseTitle(txt) {
+        checkSpace(8);
+        doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+        doc.text(txt, M, y);
+        y += 6;
+      }
+
+      function alertLine(txt) {
+        checkSpace(14);
+        // Render as plain body text — no red highlighting
+        doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(...ink);
+        const lines = doc.splitTextToSize(txt, CW - 6);
+        doc.text(lines, M, y + 6);
+        y += lines.length * 5.5 + 6;
+      }
+
+      // ── COVER PAGE ──
+      doc.setFillColor(...ink); doc.rect(0, 0, W, H, 'F');
+      doc.setDrawColor(...gold); doc.setLineWidth(0.5);
+      doc.rect(12, 12, W - 24, H - 24);
+
+      doc.setFontSize(11); doc.setFont('helvetica','normal'); doc.setTextColor(...gold);
+      doc.text('CIO BELA', W / 2, 80, { align: 'center' });
+      doc.setFontSize(7); doc.setTextColor(cream[0], cream[1], cream[2]);
+      doc.text('MULTI SERVICE SALON, SPA & WELLNESS CENTER LLC', W / 2, 88, { align: 'center' });
+
+      doc.setDrawColor(...gold); doc.line(M + 20, 95, W - M - 20, 95);
+
+      doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(cream[0], cream[1], cream[2]);
+      const titleLines = doc.splitTextToSize('MASTER BOOTH RENTAL & INDEPENDENT CONTRACTOR AGREEMENT', CW - 20);
+      doc.text(titleLines, W / 2, 115, { align: 'center' });
+
+      doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(...gold);
+      doc.text('HAIR STYLIST / COSMETOLOGIST', W / 2, 140, { align: 'center' });
+
+      doc.setDrawColor(...gold); doc.line(M + 20, 148, W - M - 20, 148);
+
+      // Info table
+      const infoRows = [
+        ['SALON', 'Cio Bela — Multi Service Salon, Spa & Wellness Center LLC'],
+        ['ADDRESS', '27327 Robinson Rd., Suites 3 & 4, Oak Ridge North, TX 77385'],
+        ['JURISDICTION', 'Montgomery County, Texas'],
+        ['CONTRACTOR', document.getElementById('cont-name').value],
+        ['LICENSE #', document.getElementById('cont-license').value],
+        ['EFFECTIVE DATE', dateStr],
+        ['SIGNED', timeStr],
+      ];
+      let iy = 158;
+      infoRows.forEach(([label, val]) => {
+        doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(...gold);
+        doc.text(label, M + 10, iy);
+        doc.setFontSize(8.5); doc.setFont('helvetica','normal'); doc.setTextColor(cream[0], cream[1], cream[2]);
+        doc.text(val, M + 42, iy);
+        iy += 9;
+      });
+
+      doc.setFontSize(7); doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('This agreement is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA).', W / 2, H - 22, { align: 'center' });
+
+      // ── PAGE 2 — SECTIONS I & II ──
+      newPage();
+      doc.setFillColor(...cream); doc.rect(0, 0, W, H, 'F');
+      doc.setDrawColor(...gold); doc.setLineWidth(0.8); doc.line(M, 14, W - M, 14);
+      y = 24;
+
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('SECTION I — STATUS OF THE PARTIES', M, y); y += 10;
+
+      clauseTitle('1.1 Economic Independence');
+      bodyText('Contractor warrants that they are an independent business entity, in business for themselves, and not economically dependent upon the Salon. Contractor retains full authority over their own pricing, scheduling, and client relationships, within the bounds of this Agreement and Cio Bela Brand Standards.');
+      clauseTitle('1.2 Tools of the Trade');
+      bodyText('The Salon provides the licensed space, shampoo bowls, and shared salon equipment available to the hair stylist team. Each stylist supplies and maintains their own professional tools (shears, clippers, razors, combs, brushes, flat irons, curling irons, blow dryers) and all color, chemical, and styling products used on their own clients. Shared consumables — including capes, towels, neck strips, and cleaning supplies — are shared among the hair stylist team and the cost of replenishing them is divided equally among all active hair stylists.');
+      clauseTitle('1.3 No Benefits / Waiver of Claims');
+      bodyText('Contractor is NOT an employee of Cio Bela and is not entitled to any Salon-paid benefits, including health insurance, 401(k), paid time off, workers\' compensation, or unemployment benefits. Contractor explicitly waives any claim to such benefits under Texas law.');
+
+      checkSpace(12);
+      doc.setFillColor(...warm); doc.rect(M, y, CW, 1, 'F'); y += 8;
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('SECTION II — FINANCIALS & BILLING', M, y); y += 10;
+
+      clauseTitle('2.1 Saturday Auto-Pay Authorization');
+      bodyText('Contractor authorizes the Salon to charge the card on file every Saturday for the following week\'s service fee. The service fee is earned upon receipt. No refunds or pro-rating shall be granted for vacation, personal time off, illness, or any other reason.');
+      alertLine('⚠  Declined charges that go unresolved by Sunday midnight constitute default and may trigger immediate lockout.');
+      clauseTitle('2.2 Tier Sovereignty');
+      bodyText('Transition between rental tiers is at the sole and absolute discretion of Salon Management. Tier changes will be communicated no less than 7 days in advance unless resulting from a material breach.');
+      clauseTitle('2.3 Self-Help Right');
+      bodyText('If Contractor fails to maintain their station in accordance with Brand Standards, the Salon may engage professional cleaners or repairmen and charge Contractor\'s card on file for the full cost of restoration without further notice.');
+
+      // ── PAGE 3 — SECTIONS III & IV ──
+      newPage();
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('SECTION III — TDLR & LEGAL COMPLIANCE', M, y); y += 10;
+
+      clauseTitle('3.1 Lawful Presence Warranty (Effective May 1, 2026)');
+      bodyText('Per updated TDLR rules effective May 1, 2026, Contractor warrants they meet all citizenship and residency requirements for Texas cosmetology or barber license eligibility. An active, valid Texas Cosmetology Operator or Barber license must be physically displayed at the station at all times.');
+      alertLine('⚠  Operating with an expired, suspended, or revoked license results in immediate removal and potential contract termination without refund.');
+      clauseTitle('3.2 Sanitation & Cross-Contamination');
+      bodyText('Combs, brushes, shears, clippers, razors, and all multi-use tools must be cleaned and disinfected between every client; single-use items must be discarded after one use. Using an unsanitized tool on a client is a TDLR cross-contamination violation and poses serious health risks. Only EPA-registered, TDLR-approved disinfectants may be used between every client. Violation constitutes grounds for immediate lockout.');
+      clauseTitle('3.3 CROWN Act & Professionalism Standards');
+      bodyText('Contractor shall comply with all Texas and federal anti-discrimination laws. Contractor agrees to maintain the Cio Bela Warm Minimalism Brand Aesthetic Standard, including attire, music volume, and station presentation.');
+      clauseTitle('3.4 Sanitation Mandate');
+      bodyText('Contractor is 100% solely liable for any station-specific TDLR fines. EPA-registered, TDLR-approved disinfectants must be used on all implements between every client. Contaminated implements must be discarded per TDLR protocol.');
+
+      checkSpace(12);
+      doc.setFillColor(...warm); doc.rect(M, y, CW, 1, 'F'); y += 8;
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('SECTION IV — SERVICES OFFERED', M, y); y += 10;
+
+      if (services.length > 0) {
+        clauseTitle('Contracted Services');
+        bodyText('Contractor warrants they are licensed and trained to perform the following services:');
+        const svcText = services.join('  •  ');
+        bodyText('• ' + services.join('\n• '), 4);
+      }
+      if (document.getElementById('extra-services').value) {
+        clauseTitle('Additional Specialty Services');
+        bodyText(document.getElementById('extra-services').value);
+      }
+      clauseTitle('Service Representation Warranty');
+      bodyText('Contractor warrants that they are properly trained, licensed (where required), and competent to perform any service they represent to clients. Misrepresenting skill level or performing services outside training is a violation of TDLR regulations and this Agreement.');
+
+      // ── PAGE 4 — SECTIONS V & VI ──
+      newPage();
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('SECTION V — DATA SOVEREIGNTY & TRADE SECRETS', M, y); y += 10;
+
+      clauseTitle('5.1 Exclusive Ownership of Client Data');
+      bodyText('All client data — including names, phone numbers, email addresses, service history, and appointment records — contained within the Salon\'s digital booking system is the exclusive Trade Secret property of Cio Bela. Contractor has no ownership interest in Salon client data.');
+      bodyText('This prohibition applies exclusively to clients sourced through Cio Bela\'s booking platform, marketing, or referral network. Contractor retains full rights to their pre-existing personal clientele. Unauthorized solicitation of Salon-sourced clients results in $2,500 in Liquidated Damages per instance, payable immediately.');
+      clauseTitle('5.2 Client Solicitation Prohibition (12-Month Post-Termination)');
+      bodyText('During the term of this Agreement and for 12 months following termination, Contractor shall not directly or indirectly solicit or encourage any Cio Bela salon-sourced client to transfer their patronage to any other salon or location.');
+      clauseTitle('5.3 Social Media Branding Policy');
+      bodyText('Upon termination or resignation, Contractor must remove all references to "Cio Bela" from social media bios, highlights, and profiles within 24 hours. Failure to comply constitutes Brand Infringement.');
+      clauseTitle('5.4 Booking Platform Policy');
+      bodyText('All client appointments must be booked exclusively through the Salon\'s designated booking platform. Directing Salon clients to personal booking links or cash-only arrangements to circumvent the Salon\'s system is a material breach.');
+
+      checkSpace(12);
+      doc.setFillColor(...warm); doc.rect(M, y, CW, 1, 'F'); y += 8;
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('SECTION VI — LIABILITY & OCCUPATIONAL RISK', M, y); y += 10;
+
+      clauseTitle('6.1 Occupational Health & Toxic Tort Waiver');
+      bodyText('Contractor acknowledges the inherent occupational health risks of hair services including chemical exposure (color, bleach, relaxers, perm solutions), airborne dust and fumes, repetitive motion injury, heat-tool burns, and skin sensitization. Contractor assumes all such risks and waives all future claims against Cio Bela for health conditions related to their trade.');
+      clauseTitle('6.2 Client Service Liability');
+      bodyText('Contractor is solely and exclusively liable for all services performed on clients. Cio Bela bears no responsibility for any service-related injury or claim. Contractor is strongly encouraged to maintain independent professional liability insurance.');
+      clauseTitle('6.3 Indemnification');
+      bodyText('Contractor shall defend, indemnify, and hold harmless Cio Bela and its owners, managers, agents, and employees from and against any claims, damages, lawsuits, losses, costs, and attorneys\' fees arising out of Contractor\'s services, station incidents, or client interactions.');
+
+      // ── PAGE 5 — SECTION VII & SIGNATURE ──
+      newPage();
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('SECTION VII — TERMINATION & LOCKOUT RIGHTS', M, y); y += 10;
+
+      clauseTitle('7.1 Immediate Lockout Conditions (Texas Property Code § 93.002)');
+      bodyText('Salon reserves the right to execute immediate lockout and disable all digital access without advance notice for: failure to pay rent by Saturday midnight; sanitation or TDLR cross-contamination violations; conduct damaging the Salon\'s reputation; expired or revoked license; physical altercation or verbal abuse; or material breach of this Agreement.');
+      clauseTitle('7.2 Voluntary Termination / Resignation');
+      bodyText('Contractor agrees to provide 30 days written notice of resignation via email. Early departure without notice forfeits any remaining prepaid rent.');
+      clauseTitle('7.3 Abandonment Policy');
+      bodyText('Job Abandonment is defined as: removal of substantial equipment without notice; 48 consecutive hours of unexcused absence; or 3+ no-shows within a 30-day period. Upon abandonment determination, Salon may immediately re-assign the station and store belongings for 14 days before disposal.');
+      clauseTitle('7.4 Legal & Dispute Resolution');
+      bodyText('The prevailing party — with priority rights reserved for Cio Bela — shall recover all reasonable attorneys\' fees and court costs. All disputes shall be resolved in Montgomery County, Texas. Email service to the Contractor\'s address on file constitutes Official Legal Service.');
+
+      // ── SIGNATURE PAGE ──
+      checkSpace(30);
+      doc.setFillColor(...warm); doc.rect(M, y, CW, 1, 'F'); y += 8;
+      doc.setFontSize(14); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text('SECTION VIII — SIGNATURES', M, y); y += 10;
+
+      const legalText = 'This electronic signature is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA). By signing below, the Contractor confirms they have read, understood, and agreed to all terms of this Master Booth Rental & Independent Contractor Agreement.';
+      bodyText(legalText);
+
+      checkSpace(50);
+      // Salon signature line
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...mid);
+      doc.text('SALON REPRESENTATIVE SIGNATURE', M, y); y += 5;
+      doc.setDrawColor(...mid); doc.setLineWidth(0.3); doc.line(M, y, M + 80, y); y += 6;
+      doc.text('Cio Bela — Multi Service Salon, Spa & Wellness Center LLC', M, y); y += 12;
+
+      // Contractor signature
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...mid);
+      doc.text('CONTRACTOR SIGNATURE', M, y); y += 5;
+      doc.setDrawColor(...mid); doc.setLineWidth(0.3); doc.rect(M, y, CW, 36); 
+
+      try { doc.addImage(sigImage, 'PNG', M + 2, y + 2, CW - 4, 32); } catch (e) {}
+      y += 42;
+
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...mid);
+      doc.text('FULL LEGAL NAME', M, y); y += 5;
+      doc.setFontSize(12); doc.setFont('helvetica','bold'); doc.setTextColor(...ink);
+      doc.text(sigName, M, y); y += 9;
+
+      doc.setFontSize(8); doc.setFont('helvetica','normal'); doc.setTextColor(...mid);
+      doc.text('DATE & TIME OF SIGNING', M, y); y += 5;
+      doc.setFontSize(9); doc.setTextColor(...ink);
+      doc.text(`${dateStr} at ${timeStr}`, M, y); y += 9;
+
+      doc.setFontSize(8); doc.setTextColor(...mid);
+      doc.text('LICENSE #', M, y); y += 5;
+      doc.setFontSize(9); doc.setTextColor(...ink);
+      doc.text(document.getElementById('cont-license').value, M, y);
+
+      // ── FOOTERS ──
+      const pc = doc.internal.getNumberOfPages();
+      for (let i = 1; i <= pc; i++) {
+        doc.setPage(i);
+        doc.setFillColor(28, 23, 18); doc.rect(0, H - 10, W, 10, 'F');
+        doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(...gold);
+        doc.text('Cio Bela — Multi Service Salon, Spa & Wellness Center LLC  |  Confidential Contractor Agreement', M, H - 4.5);
+        doc.setTextColor(107, 94, 78);
+        doc.text('Page ' + i + ' of ' + pc, W - M, H - 4.5, { align: 'right' });
+      }
+
+      doc.save('CioBela-HairStylist-ContractorAgreement-' + sigName.replace(/\s+/g, '-') + '.pdf');
+    } catch (err) {
+      console.error('PDF error:', err);
+    }
+  }
+
+  // Store doc reference for optional download
+  var _pdfDoc = null;
+  var _sigName = '';
+
+  async function submitContract() {
+    const sigName = document.getElementById('sig-name').value.trim();
+    if (!sigName) { alert('Please type your full legal name to confirm your signature.'); return; }
+    if (!hasSig) { alert('Please draw your signature in the signature box.'); return; }
+    if (!validatePage(8)) return;
+
+    _sigName = sigName;
+
+    // ── SAVE TO SUPABASE AUTOMATICALLY ──
+    // Get email from URL first (most reliable), then form field
+    var urlEmail = new URLSearchParams(window.location.search).get('email');
+    var formEmail = document.getElementById('cont-email').value.trim().toLowerCase();
+    var email = (urlEmail || formEmail).toLowerCase().trim();
+
+    console.log('Saving progress for email:', email);
+
+    if (email && window.supabase) {
+      try {
+        var db = window.supabase.createClient(
+          'https://cphlvgsneukrrzyajikb.supabase.co',
+          'sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC'
+        );
+        var result = await db.from('contractor_progress')
+          .update({ contract_signed: true })
+          .eq('contractor_email', email);
+        console.log('Update result:', JSON.stringify(result));
+        if (result.error) {
+          // Try upsert as fallback
+          await db.from('contractor_progress')
+            .upsert({ contractor_email: email, contract_signed: true }, { onConflict: 'contractor_email' });
+        }
+      } catch(e) { console.error('Supabase error:', e); }
+    }
+
+    // Show success screen immediately — no waiting for PDF
+    document.getElementById('progress-bar-wrap').style.display = 'none';
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('success').style.display = 'block';
+    document.getElementById('success').classList.add('active');
+    scrollTop();
+  }
+
+  function downloadPDF() {
+    generateAndDownloadPDF();
+  }
+
+  function returnToHub() {
+    var urlEmail = new URLSearchParams(window.location.search).get('email');
+    var formEmail = document.getElementById('cont-email').value.trim();
+    var email = urlEmail || formEmail;
+    var hubUrl = 'https://shawntyd.github.io/ciobela-hair-onboarding/cio-bela-hair-hub.html';
+    if (email) hubUrl += '?email=' + encodeURIComponent(email) + '&completed=contract';
+    window.location.href = hubUrl;
+  }
+</script>
+</body>
+</html>

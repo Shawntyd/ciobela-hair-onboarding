@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cio Bela — Emergency Contact & Medical Info</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+function scrollTop() {
+  try { window.location.hash=''; window.location.hash='top'; } catch(e) {}
+  scrollTop();
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --ink: #181410;
+    --cream: #F8F4EF;
+    --warm: #EDE5D8;
+    --gold: #B5924A;
+    --gold2: #D4AE72;
+    --mid: #6B5C48;
+    --border: #D8CBBA;
+    --alert: #7A3B1E;
+    --alert-bg: #FDF0E8;
+    --green: #2A5C3F;
+    --green-bg: #EBF5EF;
+    --info: #1B4D6B;
+    --info-bg: #EBF4FA;
+    --white: #FFFFFF;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--cream); color: var(--ink);  }
+
+  header { background: var(--ink); padding: 26px 24px 20px; text-align: center; border-bottom: 2px solid var(--gold); }
+  .h-brand { font-family: 'Cormorant Garamond', serif; font-size: clamp(20px,4vw,28px); font-weight: 300; letter-spacing: .22em; text-transform: uppercase; color: var(--gold2); }
+  .h-sub { font-size: 10px; letter-spacing: .26em; text-transform: uppercase; color: #8C7A64; margin-top: 4px; font-weight: 300; }
+
+  .wrap { max-width: 700px; margin: 0 auto; padding: 44px 20px 80px; }
+
+  .pg-head { margin-bottom: 28px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .pg-eyebrow { font-size: 10px; letter-spacing: .28em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin-bottom: 8px; }
+  .pg-title { font-family: 'Cormorant Garamond', serif; font-size: clamp(24px,5vw,36px); font-weight: 400; color: var(--ink); line-height: 1.2; }
+  .pg-sub { font-size: 13px; color: var(--mid); margin-top: 8px; font-weight: 300; line-height: 1.7; }
+
+  .instr { border-radius: 0 4px 4px 0; padding: 12px 16px; margin-bottom: 16px; font-size: 12.5px; line-height: 1.65; }
+  .instr.info { background: var(--info-bg); border-left: 3px solid var(--info); color: var(--info); }
+  .instr.warn { background: var(--alert-bg); border-left: 3px solid var(--alert); color: var(--alert); }
+  .instr.good { background: var(--green-bg); border-left: 3px solid var(--green); color: var(--green); }
+  .instr strong { font-weight: 600; }
+
+  .sec-label { font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--gold); font-weight: 500; margin: 28px 0 14px; display: flex; align-items: center; gap: 12px; }
+  .sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  .fg { margin-bottom: 18px; }
+  .fg label { display: block; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--mid); margin-bottom: 5px; font-weight: 500; }
+  .fg .hint { font-size: 12px; color: var(--mid); margin-bottom: 8px; font-weight: 300; line-height: 1.6; }
+  .fg input, .fg select, .fg textarea {
+    width: 100%; background: var(--white); border: 1px solid var(--border);
+    border-radius: 3px; padding: 11px 14px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; color: var(--ink); outline: none; transition: border-color .2s;
+  }
+  .fg input:focus, .fg select:focus, .fg textarea:focus { border-color: var(--gold); }
+  .fg input.invalid { border-color: var(--alert) !important; }
+  .fg textarea { min-height: 80px; resize: vertical; }
+
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  .g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+  @media(max-width: 520px) { .g2, .g3 { grid-template-columns: 1fr; } }
+
+  /* RADIO / CHECKBOX GROUPS */
+  .option-row { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+  .opt-btn {
+    padding: 8px 18px; border: 1.5px solid var(--border); border-radius: 20px;
+    font-size: 12px; font-weight: 400; cursor: pointer; background: var(--white);
+    color: var(--mid); transition: all .2s; font-family: 'DM Sans', sans-serif;
+  }
+  .opt-btn:hover { border-color: var(--gold); }
+  .opt-btn.active { border-color: var(--gold); background: var(--gold); color: #fff; }
+  .opt-btn.active-alert { border-color: var(--alert); background: var(--alert); color: #fff; }
+
+  /* ALLERGY / CONDITION CHIPS */
+  .chip-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); gap: 8px; margin-bottom: 12px; }
+  .chip {
+    display: flex; align-items: center; gap: 10px; padding: 10px 14px;
+    background: var(--white); border: 1px solid var(--border); border-radius: 3px;
+    cursor: pointer; font-size: 12.5px; font-weight: 300; transition: all .2s;
+  }
+  .chip:hover { border-color: var(--gold); }
+  .chip.checked { border-color: var(--alert); background: var(--alert-bg); color: var(--alert); font-weight: 500; }
+  .chip input { accent-color: var(--alert); min-width: 14px; }
+
+  /* CONTACT CARD */
+  .contact-card {
+    background: var(--white); border: 1px solid var(--border); border-radius: 4px;
+    padding: 22px 24px; margin-bottom: 14px;
+  }
+  .contact-card-head {
+    font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+    color: var(--gold); font-weight: 500; margin-bottom: 16px;
+    padding-bottom: 10px; border-bottom: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .priority-badge {
+    font-size: 9px; letter-spacing: .15em; text-transform: uppercase;
+    padding: 3px 10px; border-radius: 10px; font-weight: 600;
+  }
+  .badge-primary { background: var(--gold); color: #fff; }
+  .badge-secondary { background: var(--warm); color: var(--mid); border: 1px solid var(--border); }
+
+  /* SIGNATURE */
+  .sig-wrap { background: var(--white); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-top: 6px; }
+  .sig-top { background: var(--warm); padding: 9px 16px; font-size: 10px; letter-spacing: .18em; text-transform: uppercase; color: var(--mid); font-weight: 500; }
+  canvas { display: block; width: 100%; height: 140px; cursor: crosshair; touch-action: none; }
+  .sig-bar { display: flex; justify-content: flex-end; padding: 7px 12px; border-top: 1px solid var(--border); }
+  .btn-clr { font-size: 10px; letter-spacing: .15em; text-transform: uppercase; color: var(--mid); background: none; border: 1px solid var(--border); padding: 5px 14px; border-radius: 2px; cursor: pointer; font-family: 'DM Sans', sans-serif; transition: all .2s; }
+  .btn-clr:hover { border-color: var(--gold); color: var(--gold); }
+
+  .legal-note { background: var(--warm); border: 1px solid var(--border); border-radius: 3px; padding: 14px 18px; font-size: 12px; color: var(--mid); line-height: 1.7; font-style: italic; margin: 20px 0; }
+
+  .btn-submit { width: 100%; background: var(--gold); color: #fff; border: none; padding: 16px; font-family: 'DM Sans', sans-serif; font-size: 12px; letter-spacing: .26em; text-transform: uppercase; font-weight: 500; cursor: pointer; border-radius: 2px; transition: background .2s; margin-top: 8px; }
+  .btn-submit:hover { background: var(--mid); }
+
+  hr.div { border: none; border-top: 1px solid var(--border); margin: 24px 0; }
+
+  /* SUCCESS */
+  #success { display: none; text-align: center; padding: 60px 20px; }
+  .s-icon { width: 68px; height: 68px; background: var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 24px; font-size: 28px; color: #fff; }
+  .s-title { font-family: 'Cormorant Garamond', serif; font-size: 34px; font-weight: 400; margin-bottom: 14px; }
+  .s-body { font-size: 14px; color: var(--mid); line-height: 1.8; font-weight: 300; max-width: 460px; margin: 0 auto 24px; }
+  .email-pill { display: inline-block; background: var(--ink); color: var(--gold2); padding: 14px 28px; border-radius: 3px; font-size: 15px; margin-bottom: 28px; }
+  .next-box { background: var(--warm); border: 1px solid var(--border); border-radius: 4px; padding: 22px 26px; max-width: 480px; margin: 0 auto; text-align: left; }
+  .next-box h4 { font-size: 10px; letter-spacing: .25em; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+  .next-box li { list-style: none; font-size: 13px; color: var(--ink); padding-left: 16px; position: relative; margin-bottom: 10px; font-weight: 300; line-height: 1.6; }
+  .next-box li::before { content: '→'; position: absolute; left: 0; color: var(--gold); }
+</style>
+</head>
+<body>
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<a id="top" style="position:absolute;top:0;left:0;width:1px;height:1px;opacity:0;pointer-events:none;" aria-hidden="true"></a>
+
+<header>
+  <div class="h-brand">Cio Bela</div>
+  <div class="h-sub">Emergency Contact &amp; Medical Information — Contractor Onboarding</div>
+</header>
+
+<div class="wrap">
+
+  <div class="pg-head">
+    <div class="pg-eyebrow">Contractor Safety Record</div>
+    <h1 class="pg-title">Emergency Contact &amp; Medical Information</h1>
+    <p class="pg-sub">This form is kept on file by Cio Bela management for use only in the event of a medical emergency or workplace incident. All information is strictly confidential and will not be shared with other contractors.</p>
+  </div>
+
+  <div class="instr warn"><strong>Why this matters:</strong> In a salon environment, contractors work with chemicals, sharp tools, and electrical equipment. In the event you experience a medical emergency, allergic reaction, or workplace injury, Cio Bela management needs to know who to contact and what conditions to disclose to first responders.</div>
+  <div class="instr info"><strong>Confidentiality:</strong> This form is stored securely by Salon Management only. It will never be shared with other contractors, posted publicly, or used for any purpose other than emergency response and safety planning.</div>
+
+  <!-- ══ SECTION 1: CONTRACTOR INFO ══ -->
+  <div class="sec-label">Contractor Information</div>
+  <div class="g2">
+    <div class="fg">
+      <label>Full Legal Name *</label>
+      <input type="text" id="c-name" placeholder="First and last name">
+    </div>
+    <div class="fg">
+      <label>Preferred Name</label>
+      <input type="text" id="c-preferred" placeholder="What you go by at the salon">
+    </div>
+  </div>
+  <div class="g3">
+    <div class="fg">
+      <label>Date of Birth *</label>
+      <input type="date" id="c-dob">
+    </div>
+    <div class="fg">
+      <label>Phone Number *</label>
+      <input type="tel" id="c-phone" placeholder="(xxx) xxx-xxxx">
+    </div>
+    <div class="fg">
+      <label>Blood Type</label>
+      <select id="c-blood">
+        <option value="">— Select if known —</option>
+        <option>A+</option><option>A-</option>
+        <option>B+</option><option>B-</option>
+        <option>AB+</option><option>AB-</option>
+        <option>O+</option><option>O-</option>
+        <option>Unknown</option>
+      </select>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="fg">
+      <label>Home Address *</label>
+      <input type="text" id="c-address" placeholder="Street, City, State, ZIP">
+    </div>
+    <div class="fg">
+      <label>Personal Email *</label>
+      <input type="email" id="c-email" placeholder="your@email.com">
+    </div>
+  </div>
+
+  <!-- ══ SECTION 2: PRIMARY EMERGENCY CONTACT ══ -->
+  <div class="sec-label">Primary Emergency Contact</div>
+  <div class="contact-card">
+    <div class="contact-card-head">
+      Contact 1
+      <span class="priority-badge badge-primary">Primary</span>
+    </div>
+    <div class="g2">
+      <div class="fg">
+        <label>Full Name *</label>
+        <input type="text" id="ec1-name" placeholder="Full name">
+      </div>
+      <div class="fg">
+        <label>Relationship to You *</label>
+        <select id="ec1-rel">
+          <option value="">— Select —</option>
+          <option>Spouse / Partner</option>
+          <option>Parent</option>
+          <option>Sibling</option>
+          <option>Child (adult)</option>
+          <option>Friend</option>
+          <option>Roommate</option>
+          <option>Other Family Member</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="g3">
+      <div class="fg">
+        <label>Primary Phone *</label>
+        <input type="tel" id="ec1-phone" placeholder="(xxx) xxx-xxxx">
+      </div>
+      <div class="fg">
+        <label>Secondary Phone</label>
+        <input type="tel" id="ec1-phone2" placeholder="(xxx) xxx-xxxx">
+      </div>
+      <div class="fg">
+        <label>Email Address</label>
+        <input type="email" id="ec1-email" placeholder="their@email.com">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Their Address</label>
+      <input type="text" id="ec1-address" placeholder="Street, City, State, ZIP (optional)">
+    </div>
+  </div>
+
+  <!-- ══ SECTION 3: SECONDARY EMERGENCY CONTACT ══ -->
+  <div class="sec-label">Secondary Emergency Contact</div>
+  <div class="contact-card">
+    <div class="contact-card-head">
+      Contact 2
+      <span class="priority-badge badge-secondary">Secondary</span>
+    </div>
+    <div class="g2">
+      <div class="fg">
+        <label>Full Name</label>
+        <input type="text" id="ec2-name" placeholder="Full name">
+      </div>
+      <div class="fg">
+        <label>Relationship to You</label>
+        <select id="ec2-rel">
+          <option value="">— Select —</option>
+          <option>Spouse / Partner</option>
+          <option>Parent</option>
+          <option>Sibling</option>
+          <option>Child (adult)</option>
+          <option>Friend</option>
+          <option>Roommate</option>
+          <option>Other Family Member</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="g2">
+      <div class="fg">
+        <label>Primary Phone</label>
+        <input type="tel" id="ec2-phone" placeholder="(xxx) xxx-xxxx">
+      </div>
+      <div class="fg">
+        <label>Email Address</label>
+        <input type="email" id="ec2-email" placeholder="their@email.com">
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 4: MEDICAL INFORMATION ══ -->
+  <div class="sec-label">Medical Information</div>
+  <div class="instr info"><strong>This information is for first responders only.</strong> In an emergency, paramedics need to know about conditions, allergies, and medications before administering treatment. You are not required to disclose anything, but providing accurate information could save your life.</div>
+
+  <div class="fg">
+    <label>Do you have any known medical conditions?</label>
+    <div class="hint">Select all that apply. This list is not exhaustive — add others in the text field below.</div>
+    <div class="chip-grid" id="conditions-grid">
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Asthma"> Asthma</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Diabetes (Type 1)"> Diabetes (Type 1)</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Diabetes (Type 2)"> Diabetes (Type 2)</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Heart Condition"> Heart Condition</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="High Blood Pressure"> High Blood Pressure</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Epilepsy / Seizures"> Epilepsy / Seizures</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Severe Anxiety / Panic Disorder"> Severe Anxiety / Panic</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Chronic Migraines"> Chronic Migraines</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Pregnancy"> Pregnancy</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Auto-immune Condition"> Auto-immune Condition</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="None known"> None known</label>
+    </div>
+    <div class="fg" style="margin-top:8px;margin-bottom:0;">
+      <input type="text" id="conditions-other" placeholder="Other conditions not listed above...">
+    </div>
+  </div>
+
+  <div class="fg">
+    <label>Known Allergies</label>
+    <div class="hint">Select all that apply — especially relevant to salon chemicals and common treatments.</div>
+    <div class="chip-grid" id="allergy-grid">
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Latex"> Latex</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Hair Dye (PPD)"> Hair Dye (PPD)</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Bleach / Lightener"> Bleach / Lightener</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Ammonia / Relaxer Chemicals"> Ammonia / Relaxer Chemicals</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Fragrance / Perfume"> Fragrance / Perfume</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Nickel / Metal"> Nickel / Metal</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Penicillin / Antibiotics"> Penicillin / Antibiotics</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Aspirin / NSAIDs"> Aspirin / NSAIDs</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Shellfish"> Shellfish</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="Tree Nuts"> Tree Nuts</label>
+      <label class="chip" onclick="toggleChip(this)"><input type="checkbox" value="No known allergies"> No known allergies</label>
+    </div>
+    <div class="fg" style="margin-top:8px;margin-bottom:0;">
+      <input type="text" id="allergy-other" placeholder="Other allergies not listed above...">
+    </div>
+  </div>
+
+  <div class="fg">
+    <label>Do you carry an EpiPen or emergency medication?</label>
+    <div class="option-row" id="epi-row">
+      <button class="opt-btn" onclick="toggleOpt(this,'epi-row')">Yes — EpiPen</button>
+      <button class="opt-btn" onclick="toggleOpt(this,'epi-row')">Yes — Other medication</button>
+      <button class="opt-btn" onclick="toggleOpt(this,'epi-row')">No</button>
+    </div>
+  </div>
+
+  <div class="fg">
+    <label>Current Medications</label>
+    <div class="hint">List any medications you take regularly that first responders should know about. You may use generic names. This field is optional but highly recommended.</div>
+    <textarea id="medications" placeholder="e.g. Metformin 500mg, Lisinopril 10mg, or 'None'"></textarea>
+  </div>
+
+  <div class="fg">
+    <label>Primary Care Physician</label>
+    <div class="g2">
+      <input type="text" id="doc-name" placeholder="Doctor's full name">
+      <input type="tel" id="doc-phone" placeholder="Office phone number">
+    </div>
+  </div>
+
+  <!-- ══ SECTION 5: WORKPLACE PREFERENCES ══ -->
+  <div class="sec-label">Workplace Safety Preferences</div>
+  <div class="instr good"><strong>This section helps management support you safely on the job.</strong> These preferences are not medical orders, but they help us create a safer environment for you while you work.</div>
+
+  <div class="fg">
+    <label>Chemical Sensitivity Level</label>
+    <div class="hint">How sensitive are you to chemical fumes typically present in a hair salon environment (color, bleach, relaxers, and styling products)?</div>
+    <div class="option-row" id="chem-row">
+      <button class="opt-btn" onclick="toggleOpt(this,'chem-row')">None — no issues</button>
+      <button class="opt-btn" onclick="toggleOpt(this,'chem-row')">Mild — occasional irritation</button>
+      <button class="opt-btn" onclick="toggleOpt(this,'chem-row')">Moderate — I use PPE</button>
+      <button class="opt-btn" onclick="toggleOpt(this,'chem-row')">Severe — medical concern</button>
+    </div>
+  </div>
+
+  <div class="fg">
+    <label>Do you have any physical limitations affecting your work?</label>
+    <div class="hint">e.g. back issues, wrist/hand conditions, vision impairment, standing limitations. This helps us accommodate you appropriately.</div>
+    <textarea id="limitations" placeholder="Describe any physical limitations, or write 'None'"></textarea>
+  </div>
+
+  <div class="fg">
+    <label>In an emergency, are you comfortable with CPR being performed if needed?</label>
+    <div class="option-row" id="cpr-row">
+      <button class="opt-btn" onclick="toggleOpt(this,'cpr-row')">Yes</button>
+      <button class="opt-btn" onclick="toggleOpt(this,'cpr-row')">Yes — with conditions (explain below)</button>
+      <button class="opt-btn" onclick="toggleOpt(this,'cpr-row')">No — DNR on file</button>
+    </div>
+  </div>
+
+  <div class="fg">
+    <label>Additional Notes for Emergency Responders</label>
+    <div class="hint">Anything else first responders or management should know in an emergency. Examples: religious restrictions on treatment, DNR documentation, specific hospital preferences.</div>
+    <textarea id="emerg-notes" placeholder="Any additional emergency instructions or preferences..."></textarea>
+  </div>
+
+  <!-- ══ SECTION 6: HEALTH INSURANCE ══ -->
+  <div class="sec-label">Health Insurance Information <span style="font-size:9px;text-transform:none;letter-spacing:.05em;color:var(--mid);font-weight:300;">(optional)</span></div>
+  <div class="instr info"><strong>Optional but helpful.</strong> As an independent contractor, you are responsible for your own health insurance. Providing this information helps management notify your insurer in a serious emergency if you are unable to do so yourself.</div>
+
+  <div class="g2">
+    <div class="fg">
+      <label>Insurance Provider</label>
+      <input type="text" id="ins-provider" placeholder="e.g. Blue Cross Blue Shield">
+    </div>
+    <div class="fg">
+      <label>Member / Policy ID</label>
+      <input type="text" id="ins-id" placeholder="Policy or member number">
+    </div>
+  </div>
+  <div class="g2">
+    <div class="fg">
+      <label>Group Number</label>
+      <input type="text" id="ins-group" placeholder="Group number (if applicable)">
+    </div>
+    <div class="fg">
+      <label>Insurance Phone Number</label>
+      <input type="tel" id="ins-phone" placeholder="Member services number">
+    </div>
+  </div>
+  <div class="fg">
+    <label>Preferred Hospital (if applicable)</label>
+    <input type="text" id="pref-hospital" placeholder="e.g. Memorial Hermann, Houston Methodist">
+  </div>
+
+  <!-- ══ SIGNATURE ══ -->
+  <hr class="div">
+  <div class="sec-label">Certification &amp; Signature</div>
+
+  <div class="g2">
+    <div class="fg">
+      <label>Full Legal Name — Type to Confirm *</label>
+      <input type="text" id="sig-name" placeholder="Type your full legal name exactly">
+    </div>
+    <div class="fg">
+      <label>Signing Date</label>
+      <input type="text" id="sig-date" readonly>
+    </div>
+  </div>
+
+  <div class="sig-wrap">
+    <div class="sig-top">Draw Your Signature</div>
+    <canvas id="sigPad"></canvas>
+    <div class="sig-bar">
+      <button class="btn-clr" onclick="clearSig()">Clear</button>
+    </div>
+  </div>
+
+  <div class="legal-note">By signing, I confirm that the information provided on this form is accurate to the best of my knowledge. I authorize Cio Bela — Multi Service Salon, Spa &amp; Wellness Center LLC to use this information solely for emergency response and workplace safety purposes. This form is strictly confidential. This electronic signature is legally binding under the E-SIGN Act and the Texas Uniform Electronic Transactions Act (TUETA).</div>
+
+  <button class="btn-submit" onclick="submitForm()">Submit &amp; Download Emergency Info PDF</button>
+</div>
+
+<!-- SUCCESS -->
+<div id="success">
+  <div class="s-icon">✓</div>
+  <h2 class="s-title">Emergency Contact Submitted!</h2>
+  <p class="s-body">Your completion has been recorded. Now do these two steps:</p>
+
+  <div style="background:#2D2520;border-radius:4px;padding:20px 24px;max-width:400px;margin:20px auto;text-align:left;">
+    <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B89A6A;margin-bottom:14px;font-weight:600;">Step 1 of 2</p>
+    <p style="font-size:14px;color:#F7F3EE;margin-bottom:16px;line-height:1.6;">Tap the button below to download your signed PDF.</p>
+    <button onclick="generatePDF()" style="display:block;width:100%;background:#B89A6A;color:#fff;border:none;padding:16px 32px;font-family:sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:2px;">⬇ Download My Signed PDF</button>
+  </div>
+
+  <div style="background:#F7F3EE;border:1px solid #D4C4B0;border-radius:4px;padding:20px 24px;max-width:400px;margin:16px auto;text-align:left;">
+    <p style="font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:#B89A6A;margin-bottom:10px;font-weight:600;">Step 2 of 2</p>
+    <p style="font-size:13px;color:#6B5E4E;line-height:1.7;">Email the PDF you just downloaded to:<br><strong style="color:#1C1712;font-size:14px;">ciobelasalons@yahoo.com</strong></p>
+  </div>
+
+  <button onclick="returnToHub()" style="display:block;width:100%;max-width:400px;margin:20px auto 12px;background:#2D5A3D;color:#fff;border:none;padding:18px 32px;font-family:sans-serif;font-size:13px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;cursor:pointer;border-radius:3px;">← Return to Onboarding Checklist</button>
+  <p style="font-size:11px;color:#A0927E;text-align:center;max-width:360px;margin:0 auto 24px;">Complete steps 1 and 2 before returning to the checklist.</p>
+</div>
+
+<script>
+  var now = new Date();
+  var dateStr = now.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  var timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZoneName: 'short' });
+  var hasSig = false;
+  var drawing = false;
+  var sc, sx;
+
+  window.addEventListener('DOMContentLoaded', function() {
+    try { window.scrollTo(0,0); } catch(e) {}
+    try { document.documentElement.scrollTop=0; } catch(e) {}
+    try { document.body.scrollTop=0; } catch(e) {}
+    document.getElementById('sig-date').value = dateStr;
+    initSig();
+
+    // ── SUPABASE AUTO-FILL ──
+    var set=function(id,val){var el=document.getElementById(id);if(el&&val)el.value=val;};
+    function doFill(p){set('c-name',p.full_name||p.fullName);set('c-preferred',p.preferred_name||p.preferredName||'');set('c-phone',p.phone);set('c-email',p.email);set('c-address',p.address);}
+    try{var cp=JSON.parse(sessionStorage.getItem('cb_prefill')||'null');if(cp)doFill({full_name:cp.fullName,preferred_name:cp.preferredName,phone:cp.phone,email:cp.email,address:cp.address});}catch(e){}
+    var em=new URLSearchParams(window.location.search).get('email');
+    if(em&&window.supabase){var db=window.supabase.createClient('https://cphlvgsneukrrzyajikb.supabase.co','sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC');db.from('contractor_profiles').select('*').eq('email',em.toLowerCase().trim()).then(function(r){if(r.data&&r.data.length>0)doFill(r.data[0]);});}
+  });
+
+  function toggleChip(label) {
+    var cb = label.querySelector('input[type="checkbox"]');
+    setTimeout(function() {
+      label.classList.toggle('checked', cb.checked);
+    }, 0);
+  }
+
+  function toggleOpt(btn, rowId) {
+    var row = document.getElementById(rowId);
+    var btns = row.querySelectorAll('.opt-btn');
+    for (var i = 0; i < btns.length; i++) {
+      btns[i].classList.remove('active');
+    }
+    btn.classList.add('active');
+  }
+
+  function getChecked(gridId) {
+    var grid = document.getElementById(gridId);
+    if (!grid) return [];
+    var checked = grid.querySelectorAll('input[type="checkbox"]:checked');
+    var vals = [];
+    for (var i = 0; i < checked.length; i++) {
+      vals.push(checked[i].value);
+    }
+    return vals;
+  }
+
+  function getActiveOpt(rowId) {
+    var row = document.getElementById(rowId);
+    if (!row) return '—';
+    var active = row.querySelector('.opt-btn.active');
+    return active ? active.textContent : '—';
+  }
+
+  function initSig() {
+    sc = document.getElementById('sigPad');
+    if (!sc) return;
+    sx = sc.getContext('2d');
+    var ratio = window.devicePixelRatio || 1;
+    var rect = sc.getBoundingClientRect();
+    sc.width = rect.width * ratio;
+    sc.height = 140 * ratio;
+    sx.scale(ratio, ratio);
+    sx.strokeStyle = '#181410';
+    sx.lineWidth = 2.2;
+    sx.lineCap = 'round';
+    sx.lineJoin = 'round';
+
+    function getPos(e) {
+      var r = sc.getBoundingClientRect();
+      var src = e.touches ? e.touches[0] : e;
+      return { x: src.clientX - r.left, y: src.clientY - r.top };
+    }
+
+    sc.addEventListener('mousedown', function(e) { drawing = true; var p = getPos(e); sx.beginPath(); sx.moveTo(p.x, p.y); });
+    sc.addEventListener('mousemove', function(e) { if (!drawing) return; hasSig = true; var p = getPos(e); sx.lineTo(p.x, p.y); sx.stroke(); });
+    sc.addEventListener('mouseup', function() { drawing = false; });
+    sc.addEventListener('mouseleave', function() { drawing = false; });
+    sc.addEventListener('touchstart', function(e) { e.preventDefault(); drawing = true; var p = getPos(e); sx.beginPath(); sx.moveTo(p.x, p.y); }, { passive: false });
+    sc.addEventListener('touchmove', function(e) { e.preventDefault(); if (!drawing) return; hasSig = true; var p = getPos(e); sx.lineTo(p.x, p.y); sx.stroke(); }, { passive: false });
+    sc.addEventListener('touchend', function() { drawing = false; });
+  }
+
+  function clearSig() {
+    if (sx) sx.clearRect(0, 0, sc.width, sc.height);
+    hasSig = false;
+  }
+
+  function reqField(id) {
+    var el = document.getElementById(id);
+    if (!el) return true;
+    var ok = el.value.trim() !== '';
+    if (ok) el.classList.remove('invalid');
+    else el.classList.add('invalid');
+    return ok;
+  }
+
+  async function submitForm() {
+    var ok = true;
+    var required = ['c-name', 'c-dob', 'c-phone', 'c-address', 'c-email', 'ec1-name', 'ec1-phone'];
+    for (var i = 0; i < required.length; i++) {
+      if (!reqField(required[i])) ok = false;
+    }
+    if (!reqField('ec1-rel')) ok = false;
+    if (!ok) { alert('Please complete all required fields, including primary emergency contact.'); return; }
+    if (!document.getElementById('sig-name').value.trim()) {
+      document.getElementById('sig-name').classList.add('invalid');
+      alert('Please type your full legal name to confirm.');
+      return;
+    }
+    if (!hasSig) { alert('Please draw your signature before submitting.'); return; }
+
+    var sigImg = sc.toDataURL('image/png');
+    var name = document.getElementById('c-name').value.trim();
+
+    var conditions = getChecked('conditions-grid');
+    var condOther = document.getElementById('conditions-other').value.trim();
+    if (condOther) conditions.push(condOther);
+
+    var allergies = getChecked('allergy-grid');
+    var allergyOther = document.getElementById('allergy-other').value.trim();
+    if (allergyOther) allergies.push(allergyOther);
+
+    try {
+      var jsPDF = window.jspdf.jsPDF;
+      var doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'letter' });
+      var W = 215.9, H = 279.4, M = 16, CW = W - M * 2;
+
+      var gold = [181, 146, 74];
+      var ink  = [24, 20, 16];
+      var mid  = [107, 92, 72];
+      var warm = [237, 229, 216];
+      var cream= [248, 244, 239];
+      var grn  = [42, 92, 63];
+      var red  = [122, 59, 30];
+
+      // ── COVER / HEADER ──
+      doc.setFillColor(cream[0], cream[1], cream[2]);
+      doc.rect(0, 0, W, H, 'F');
+
+      doc.setFillColor(ink[0], ink[1], ink[2]);
+      doc.rect(0, 0, W, 30, 'F');
+
+      doc.setFontSize(16); doc.setFont('helvetica','bold');
+      doc.setTextColor(gold[0], gold[1], gold[2]);
+      doc.text('CIO BELA', M, 13);
+
+      doc.setFontSize(7); doc.setFont('helvetica','normal');
+      doc.setTextColor(210, 195, 175);
+      doc.text('Multi Service Salon, Spa & Wellness Center LLC', M, 19);
+
+      doc.setFontSize(6.5);
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('27327 Robinson Rd., Suites 3 & 4, Oak Ridge North, TX 77385', M, 25);
+
+      doc.setDrawColor(gold[0], gold[1], gold[2]);
+      doc.setLineWidth(0.6);
+      doc.line(0, 30, W, 30);
+
+      doc.setFontSize(7); doc.setTextColor(gold[0], gold[1], gold[2]);
+      doc.text('CONFIDENTIAL — EMERGENCY USE ONLY', W - M, 18, { align: 'right' });
+      doc.setFontSize(6.5); doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text(dateStr, W - M, 25, { align: 'right' });
+
+      var y = 42;
+
+      // Alert banner
+      doc.setFillColor(red[0], red[1], red[2]);
+      doc.rect(M, y, CW, 10, 'F');
+      doc.setFontSize(9); doc.setFont('helvetica','bold');
+      doc.setTextColor(255, 255, 255);
+      doc.text('EMERGENCY CONTACT & MEDICAL INFORMATION — FOR AUTHORIZED USE ONLY', M + 4, y + 6.5);
+      y += 14;
+
+      // Title
+      doc.setFontSize(18); doc.setFont('helvetica','bold');
+      doc.setTextColor(ink[0], ink[1], ink[2]);
+      doc.text('Emergency Contact & Medical Info', M, y); y += 5;
+      doc.setDrawColor(gold[0], gold[1], gold[2]);
+      doc.setLineWidth(0.4);
+      doc.line(M, y, M + 80, y); y += 10;
+
+      // Helper: section header bar
+      function secBar(title, yy) {
+        doc.setFillColor(warm[0], warm[1], warm[2]);
+        doc.rect(M, yy, CW, 7, 'F');
+        doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+        doc.setTextColor(mid[0], mid[1], mid[2]);
+        doc.text(title, M + 3, yy + 5);
+        return yy + 10;
+      }
+
+      // Helper: labeled row
+      function row(label, value, yy) {
+        doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+        doc.setTextColor(mid[0], mid[1], mid[2]);
+        doc.text(label, M, yy);
+        doc.setFontSize(9.5); doc.setFont('helvetica','normal');
+        doc.setTextColor(ink[0], ink[1], ink[2]);
+        var val = value || '—';
+        doc.text(String(val), M + 52, yy);
+        return yy + 7;
+      }
+
+      // Contractor Info
+      y = secBar('CONTRACTOR INFORMATION', y);
+      y = row('Full Legal Name', document.getElementById('c-name').value, y);
+      y = row('Preferred Name', document.getElementById('c-preferred').value || '—', y);
+      y = row('Date of Birth', document.getElementById('c-dob').value, y);
+      y = row('Phone', document.getElementById('c-phone').value, y);
+      y = row('Blood Type', document.getElementById('c-blood').value || 'Unknown', y);
+      y = row('Home Address', document.getElementById('c-address').value, y);
+      y = row('Email', document.getElementById('c-email').value, y);
+      y += 4;
+
+      // Emergency Contacts
+      y = secBar('EMERGENCY CONTACTS', y);
+
+      doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.setTextColor(gold[0], gold[1], gold[2]);
+      doc.text('PRIMARY CONTACT', M, y); y += 5;
+
+      y = row('Name', document.getElementById('ec1-name').value, y);
+      y = row('Relationship', document.getElementById('ec1-rel').value, y);
+      y = row('Primary Phone', document.getElementById('ec1-phone').value, y);
+      y = row('Secondary Phone', document.getElementById('ec1-phone2').value || '—', y);
+      y = row('Email', document.getElementById('ec1-email').value || '—', y);
+      y = row('Address', document.getElementById('ec1-address').value || '—', y);
+      y += 4;
+
+      var ec2name = document.getElementById('ec2-name').value;
+      if (ec2name) {
+        doc.setFontSize(8); doc.setFont('helvetica','bold');
+        doc.setTextColor(gold[0], gold[1], gold[2]);
+        doc.text('SECONDARY CONTACT', M, y); y += 5;
+        y = row('Name', ec2name, y);
+        y = row('Relationship', document.getElementById('ec2-rel').value || '—', y);
+        y = row('Phone', document.getElementById('ec2-phone').value || '—', y);
+        y = row('Email', document.getElementById('ec2-email').value || '—', y);
+        y += 4;
+      }
+
+      // Check if we need a new page
+      if (y > H - 80) {
+        doc.addPage();
+        doc.setFillColor(cream[0], cream[1], cream[2]);
+        doc.rect(0, 0, W, H, 'F');
+        doc.setFillColor(ink[0], ink[1], ink[2]); doc.rect(0, 0, W, 10, 'F');
+        doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+        doc.setTextColor(gold[0], gold[1], gold[2]);
+        doc.text('CIO BELA — Emergency Contact & Medical Info (continued)', M, 7);
+        y = 20;
+      }
+
+      // Medical Information
+      y = secBar('MEDICAL INFORMATION', y);
+
+      var condStr = conditions.length > 0 ? conditions.join(', ') : 'None indicated';
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('Medical Conditions', M, y); y += 5;
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setTextColor(ink[0], ink[1], ink[2]);
+      var condLines = doc.splitTextToSize(condStr, CW - 4);
+      doc.text(condLines, M + 2, y);
+      y += condLines.length * 5 + 4;
+
+      var allergyStr = allergies.length > 0 ? allergies.join(', ') : 'None indicated';
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('Known Allergies', M, y); y += 5;
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setTextColor(ink[0], ink[1], ink[2]);
+      var allergyLines = doc.splitTextToSize(allergyStr, CW - 4);
+      doc.text(allergyLines, M + 2, y);
+      y += allergyLines.length * 5 + 4;
+
+      y = row('Carries EpiPen / Emergency Med', getActiveOpt('epi-row'), y);
+
+      var meds = document.getElementById('medications').value.trim() || 'None provided';
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('Current Medications', M, y); y += 5;
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setTextColor(ink[0], ink[1], ink[2]);
+      var medLines = doc.splitTextToSize(meds, CW - 4);
+      doc.text(medLines, M + 2, y);
+      y += medLines.length * 5 + 4;
+
+      y = row('Primary Care Physician', document.getElementById('doc-name').value || '—', y);
+      y = row('Physician Phone', document.getElementById('doc-phone').value || '—', y);
+      y += 4;
+
+      // Workplace
+      y = secBar('WORKPLACE SAFETY', y);
+      y = row('Chemical Sensitivity', getActiveOpt('chem-row'), y);
+
+      var limits = document.getElementById('limitations').value.trim() || 'None indicated';
+      doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('Physical Limitations', M, y); y += 5;
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setTextColor(ink[0], ink[1], ink[2]);
+      var limitLines = doc.splitTextToSize(limits, CW - 4);
+      doc.text(limitLines, M + 2, y);
+      y += limitLines.length * 5 + 2;
+
+      y = row('CPR Consent', getActiveOpt('cpr-row'), y);
+
+      var emergNotes = document.getElementById('emerg-notes').value.trim();
+      if (emergNotes) {
+        doc.setFontSize(6.5); doc.setFont('helvetica','bold');
+        doc.setTextColor(mid[0], mid[1], mid[2]);
+        doc.text('Additional Emergency Notes', M, y); y += 5;
+        doc.setFontSize(9); doc.setFont('helvetica','normal');
+        doc.setTextColor(ink[0], ink[1], ink[2]);
+        var noteLines = doc.splitTextToSize(emergNotes, CW - 4);
+        doc.text(noteLines, M + 2, y);
+        y += noteLines.length * 5 + 4;
+      }
+      y += 2;
+
+      // Insurance
+      var insProvider = document.getElementById('ins-provider').value;
+      if (insProvider) {
+        y = secBar('HEALTH INSURANCE', y);
+        y = row('Provider', insProvider, y);
+        y = row('Member / Policy ID', document.getElementById('ins-id').value || '—', y);
+        y = row('Group Number', document.getElementById('ins-group').value || '—', y);
+        y = row('Insurance Phone', document.getElementById('ins-phone').value || '—', y);
+        y = row('Preferred Hospital', document.getElementById('pref-hospital').value || '—', y);
+        y += 4;
+      }
+
+      // Check space for signature
+      if (y > H - 60) {
+        doc.addPage();
+        doc.setFillColor(cream[0], cream[1], cream[2]);
+        doc.rect(0, 0, W, H, 'F');
+        doc.setFillColor(ink[0], ink[1], ink[2]); doc.rect(0, 0, W, 10, 'F');
+        doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+        doc.setTextColor(gold[0], gold[1], gold[2]);
+        doc.text('CIO BELA — Emergency Contact & Medical Info (continued)', M, 7);
+        y = 20;
+      }
+
+      // Signature
+      doc.setFontSize(7.5); doc.setFont('helvetica','bold');
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('CONTRACTOR SIGNATURE & CERTIFICATION', M, y); y += 4;
+      doc.setDrawColor(mid[0], mid[1], mid[2]); doc.setLineWidth(0.3);
+      doc.rect(M, y, CW, 26);
+      try { doc.addImage(sigImg, 'PNG', M + 1, y + 1, CW - 2, 24); } catch(e) {}
+      y += 30;
+
+      doc.setFontSize(7); doc.setFont('helvetica','bold');
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('PRINT NAME', M, y); y += 5;
+      doc.setFontSize(11); doc.setFont('helvetica','bold');
+      doc.setTextColor(ink[0], ink[1], ink[2]);
+      doc.text(document.getElementById('sig-name').value, M, y); y += 8;
+
+      doc.setFontSize(7); doc.setFont('helvetica','bold');
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      doc.text('DATE & TIME SIGNED', M, y); y += 5;
+      doc.setFontSize(9); doc.setFont('helvetica','normal');
+      doc.setTextColor(ink[0], ink[1], ink[2]);
+      doc.text(dateStr + ' at ' + timeStr, M, y); y += 10;
+
+      doc.setFontSize(7); doc.setFont('helvetica','normal');
+      doc.setTextColor(mid[0], mid[1], mid[2]);
+      var certNote = 'This form is strictly confidential. Information is authorized for use only by Cio Bela management and emergency responders. Electronically signed under the E-SIGN Act and Texas Uniform Electronic Transactions Act (TUETA).';
+      var certLines2 = doc.splitTextToSize(certNote, CW);
+      doc.text(certLines2, M, y);
+
+      // Footers on all pages
+      var pageCount = doc.internal.getNumberOfPages();
+      for (var p = 1; p <= pageCount; p++) {
+        doc.setPage(p);
+        doc.setFillColor(ink[0], ink[1], ink[2]);
+        doc.rect(0, H - 10, W, 10, 'F');
+        doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+        doc.setTextColor(gold[0], gold[1], gold[2]);
+        doc.text('Cio Bela — Emergency Contact & Medical Info  |  CONFIDENTIAL', M, H - 4.5);
+        doc.setTextColor(mid[0], mid[1], mid[2]);
+        doc.text('Page ' + p + ' of ' + pageCount, W - M, H - 4.5, { align: 'right' });
+      }
+
+      doc.save('CioBela-EmergencyContact-' + name.replace(/\s+/g, '-') + '.pdf');
+    } catch(err) { console.error('PDF error:', err); }
+
+    var email = document.getElementById('c-email').value.trim().toLowerCase();
+    if (email && window.supabase) {
+      try {
+        var db = window.supabase.createClient('https://cphlvgsneukrrzyajikb.supabase.co','sb_publishable_FjWhDrtiKc6Ijhcv5WEt1w_Js55zgsC');
+        
+        var current = await db.from('contractor_progress').select('*').eq('contractor_email', emailLower);
+        var total = 0;
+        if (current.data && current.data.length > 0) {
+          var row = current.data[0];
+          row['emergency_signed'] = true;
+          var allF = ['contract_signed', 'payment_signed', 'w9_signed', 'standards_signed', 'id_uploaded', 'release_signed', 'emergency_signed'];
+          total = allF.filter(function(f){ return !!row[f]; }).length;
+        }
+        await db.from('contractor_progress').update({
+          emergency_signed: true,
+          total_complete: total,
+          onboarding_done: total >= 6
+        }).eq('contractor_email', emailLower);
+      } catch(e) { console.error('Supabase error:', e); }
+    }
+
+    document.querySelectorAll('.section, .fg, .sec-label, .instr, .check-grid, .opt-row, .grid-2').forEach(function(el){ el.style.display='none'; });
+    document.getElementById('success').style.display = 'block';
+    scrollTop();
+}
+
+  function downloadPDF() {
+    try { submitForm(); } catch(e) { alert('PDF download unavailable. Your form has been recorded.'); }
+  }
+
+  function returnToHub() {
+    var email = document.getElementById('c-email').value.trim();
+    var url = 'https://shawntyd.github.io/ciobela-hair-onboarding/cio-bela-hair-hub.html';
+    if (email) url += '?email=' + encodeURIComponent(email) + '&completed=emergency';
+    window.location.href = url;
+  }
+</script>
+</body>
+</html>
