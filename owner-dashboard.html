@@ -31,13 +31,17 @@
   .err { color: #e08a8a; font-size: 14px; margin-top: 10px; }
   .row { display: flex; gap: 10px; }
   .row button { margin-top: 16px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .tab { width: auto; padding: 8px 14px; font-size: 14px; font-weight: 600; background: transparent; color: var(--dim); border: 1px solid var(--line); border-radius: 99px; }
+  .tab.on { background: var(--gold); color: #141414; border-color: var(--gold); }
+  .svc { color: var(--gold); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
   .empty { text-align: center; color: var(--dim); padding: 40px 0; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Cio Bela <span>Owner</span></h1>
-  <div class="sub">Hair onboarding progress</div>
+  <div class="sub">Onboarding progress</div>
 
   <div id="lock" class="card" hidden>
     <div class="who" style="margin-bottom:10px">Enter your owner password</div>
@@ -46,6 +50,7 @@
     <div class="err" id="lockerr" hidden>That password didn't work. Try again.</div>
   </div>
 
+  <div class="tabs" id="tabs" hidden></div>
   <div id="board" hidden></div>
   <div class="row" id="foot" hidden>
     <button class="ghost" id="refresh">Refresh</button>
@@ -103,13 +108,29 @@
       });
   }
 
+  var SVC = { all: 'All', nail: 'Nail', waxing: 'Waxing', lash: 'Lash', hair: 'Hair' };
+  var ALL = [], filter = 'all';
+  function drawTabs() {
+    var tabs = document.getElementById('tabs');
+    tabs.hidden = false;
+    tabs.innerHTML = Object.keys(SVC).map(function (k) {
+      return '<button class="tab' + (k === filter ? ' on' : '') + '" data-k="' + k + '">' + SVC[k] + '</button>';
+    }).join('');
+    Array.prototype.forEach.call(tabs.querySelectorAll('.tab'), function (b) {
+      b.onclick = function () { filter = b.getAttribute('data-k'); render(ALL); };
+    });
+  }
+
   function render(people) {
+    ALL = people;
     lock.hidden = true; board.hidden = false; foot.hidden = false;
+    drawTabs();
+    people = people.filter(function (p) { return filter === 'all' || (p.progress || {}).service === filter; });
     people.sort(function (a, b) {
       var pa = (a.progress || {}).updated_at || '', pb = (b.progress || {}).updated_at || '';
       return pb < pa ? -1 : pb > pa ? 1 : 0;
     });
-    if (!people.length) { board.innerHTML = '<div class="empty">No stylists have started onboarding yet.</div>'; return; }
+    if (!people.length) { board.innerHTML = '<div class="empty">Nobody has started onboarding here yet.</div>'; return; }
     board.innerHTML = people.map(function (p) {
       var pr = p.progress || {};
       var doneCount = ITEMS.filter(function (it) { return pr[it[0]] === true; }).length;
@@ -119,6 +140,7 @@
         return '<div class="item' + (done ? ' done' : '') + '"><span class="mark">✓</span><span class="lbl">' + esc(it[1]) + '</span></div>';
       }).join('');
       return '<div class="card">' +
+        (pr.service ? '<div class="svc">' + esc(SVC[pr.service] || pr.service) + '</div>' : '') +
         (pr.onboarding_done ? '<span class="badge">Complete</span>' : '') +
         '<div class="who">' + esc(p.name || p.email || 'Stylist') + '</div>' +
         '<div class="email">' + esc(p.email || '') + '</div>' +

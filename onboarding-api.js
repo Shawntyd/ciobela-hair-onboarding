@@ -4,6 +4,11 @@
   var API = 'https://ciobela-onboarding.shawntyd96.workers.dev';
   var EMAIL_COL = { contractor_profiles: 'email', contractor_progress: 'contractor_email' };
 
+  var SERVICE = (function () {
+    var p = location.pathname.toLowerCase();
+    return p.indexOf('hair') > -1 ? 'hair' : p.indexOf('waxing') > -1 ? 'waxing' : p.indexOf('lash') > -1 ? 'lash' : 'nail';
+  })();
+
   function Query(table) { this.t = table; this.op = 'select'; this.payload = null; this.val = null; }
   Query.prototype.select = function () { return this; };
   Query.prototype.update = function (d) { this.op = 'update'; this.payload = d; return this; };
@@ -28,7 +33,12 @@
       return fetch(API + '/row', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ table: t, email: email, data: payload || {} })
+        body: JSON.stringify({ table: t, email: email, data: (function () {
+          var d = {}, k; payload = payload || {};
+          for (k in payload) d[k] = payload[k];
+          if (t === 'contractor_progress') d.service = SERVICE;
+          return d;
+        })() })
       })
         .then(function (r) { return r.json(); })
         .then(function (j) { return j && j.data ? { data: j.data, error: null } : { data: null, error: { message: (j && j.error) || 'error' } }; })

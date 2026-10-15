@@ -18,7 +18,7 @@ const TABLES = {
     fields: ['contractor_email','contractor_name','contract_signed','payment_signed',
              'w9_signed','standards_signed','id_uploaded','release_signed',
              'emergency_signed','bio_done','legal_done','total_complete',
-             'onboarding_done','created_at','updated_at']
+             'onboarding_done','service','created_at','updated_at']
   }
 };
 
