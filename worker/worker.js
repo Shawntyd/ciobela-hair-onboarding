@@ -1,5 +1,5 @@
 // Cio Bela onboarding storage — Cloudflare Worker + KV
-// KV binding name: ONBOARDING      Secret (optional): ADMIN_KEY
+// KV binding name: ONBOARDING      Secrets: ADMIN_KEY, GITHUB_TOKEN      Variable: BACKUP_REPO (e.g. Shawntyd/ciobela-onboarding-backup)
 
 const ALLOWED_ORIGINS = ['https://shawntyd.github.io'];
 const MAX_BODY = 20000;
@@ -47,7 +47,49 @@ function originBlocked(request) {
   return !!origin && !ALLOWED_ORIGINS.includes(origin);
 }
 
+async function collectAll(env) {
+  const out = { exported_at: new Date().toISOString(), profiles: [], progress: [] };
+  for (const pair of [['profile:', out.profiles], ['progress:', out.progress]]) {
+    let cursor;
+    do {
+      const page = await env.ONBOARDING.list({ prefix: pair[0], cursor: cursor });
+      for (const k of page.keys) {
+        pair[1].push(JSON.parse((await env.ONBOARDING.get(k.name)) || '{}'));
+      }
+      cursor = page.list_complete ? undefined : page.cursor;
+    } while (cursor);
+  }
+  return out;
+}
+
+async function backupToGitHub(env) {
+  if (!env.GITHUB_TOKEN || !env.BACKUP_REPO) throw new Error('backup not configured');
+  const data = await collectAll(env);
+  const api = 'https://api.github.com/repos/' + env.BACKUP_REPO + '/contents/backup.json';
+  const headers = {
+    'Authorization': 'Bearer ' + env.GITHUB_TOKEN,
+    'User-Agent': 'ciobela-onboarding-backup',
+    'Accept': 'application/vnd.github+json'
+  };
+  let sha;
+  const cur = await fetch(api, { headers: headers });
+  if (cur.ok) sha = (await cur.json()).sha;
+  else if (cur.status !== 404) throw new Error('github read ' + cur.status);
+  const body = {
+    message: 'Nightly backup ' + data.exported_at,
+    content: btoa(unescape(encodeURIComponent(JSON.stringify(data, null, 2))))
+  };
+  if (sha) body.sha = sha;
+  const put = await fetch(api, { method: 'PUT', headers: headers, body: JSON.stringify(body) });
+  if (!put.ok) throw new Error('github write ' + put.status);
+  return { profiles: data.profiles.length, progress: data.progress.length };
+}
+
 export default {
+  async scheduled(event, env, ctx) {
+    ctx.waitUntil(backupToGitHub(env));
+  },
+
   async fetch(request, env) {
     const url = new URL(request.url);
 
@@ -114,6 +156,23 @@ export default {
           cursor = page.list_complete ? undefined : page.cursor;
         } while (cursor);
         return reply(request, { data: out });
+      }
+
+      // ---- full export for download (needs ADMIN_KEY) ----
+      if (url.pathname === '/export' && request.method === 'GET') {
+        if (!env.ADMIN_KEY || url.searchParams.get('key') !== env.ADMIN_KEY) {
+          return reply(request, { error: 'not found' }, 404);
+        }
+        return reply(request, await collectAll(env));
+      }
+
+      // ---- run the GitHub backup right now (needs ADMIN_KEY) ----
+      if (url.pathname === '/backup-now' && request.method === 'GET') {
+        if (!env.ADMIN_KEY || url.searchParams.get('key') !== env.ADMIN_KEY) {
+          return reply(request, { error: 'not found' }, 404);
+        }
+        try { return reply(request, { ok: true, saved: await backupToGitHub(env) }); }
+        catch (e) { return reply(request, { ok: false, error: String(e.message || e) }, 500); }
       }
 
       return reply(request, { error: 'not found' }, 404);
