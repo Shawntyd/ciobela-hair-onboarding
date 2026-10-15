@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cio Bela — Onboarding Dashboard</title>
+<style>
+  :root { --gold: #c9a24b; --bg: #141414; --card: #1e1e1e; --line: #2e2e2e; --txt: #f2ede4; --dim: #a89f8d; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--txt); font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif; padding: 20px 16px 48px; }
+  .wrap { max-width: 560px; margin: 0 auto; }
+  h1 { font-size: 22px; letter-spacing: 2px; text-transform: uppercase; margin: 8px 0 2px; }
+  h1 span { color: var(--gold); }
+  .sub { color: var(--dim); font-size: 14px; margin-bottom: 20px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 16px; margin-bottom: 14px; }
+  .who { font-size: 17px; font-weight: 600; }
+  .email { color: var(--dim); font-size: 13px; margin: 2px 0 10px; }
+  .bar { height: 8px; background: #0f0f0f; border-radius: 99px; overflow: hidden; margin: 6px 0 12px; }
+  .bar > div { height: 100%; background: var(--gold); border-radius: 99px; }
+  .count { font-size: 13px; color: var(--dim); margin-bottom: 10px; }
+  .item { display: flex; align-items: center; gap: 10px; padding: 7px 0; border-top: 1px solid var(--line); font-size: 15px; }
+  .mark { width: 22px; height: 22px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 13px; flex: none; border: 1px solid var(--dim); color: transparent; }
+  .done .mark { background: var(--gold); border-color: var(--gold); color: #141414; }
+  .done .lbl { color: var(--txt); }
+  .lbl { color: var(--dim); }
+  .badge { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #141414; background: var(--gold); border-radius: 99px; padding: 4px 10px; margin-bottom: 8px; }
+  .meta { color: var(--dim); font-size: 12px; margin-top: 10px; }
+  input[type=password] { width: 100%; padding: 12px; font-size: 16px; border-radius: 10px; border: 1px solid var(--line); background: #0f0f0f; color: var(--txt); margin-bottom: 10px; }
+  button { width: 100%; padding: 13px; font-size: 16px; font-weight: 700; border: 0; border-radius: 10px; background: var(--gold); color: #141414; }
+  button.ghost { background: transparent; color: var(--dim); border: 1px solid var(--line); margin-top: 10px; font-weight: 400; }
+  .err { color: #e08a8a; font-size: 14px; margin-top: 10px; }
+  .row { display: flex; gap: 10px; }
+  .row button { margin-top: 16px; }
+  .empty { text-align: center; color: var(--dim); padding: 40px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Cio Bela <span>Owner</span></h1>
+  <div class="sub">Hair onboarding progress</div>
+
+  <div id="lock" class="card" hidden>
+    <div class="who" style="margin-bottom:10px">Enter your owner password</div>
+    <input type="password" id="key" placeholder="Owner password" autocomplete="off">
+    <button id="unlock">Unlock dashboard</button>
+    <div class="err" id="lockerr" hidden>That password didn't work. Try again.</div>
+  </div>
+
+  <div id="board" hidden></div>
+  <div class="row" id="foot" hidden>
+    <button class="ghost" id="refresh">Refresh</button>
+    <button class="ghost" id="signout">Sign out</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var WORKER = 'https://ciobela-onboarding.shawntyd96.workers.dev';
+  var ITEMS = [
+    ['contract_signed', 'Hair contract'],
+    ['payment_signed', 'Payment authorization'],
+    ['w9_signed', 'W-9 packet'],
+    ['standards_signed', 'Brand standards'],
+    ['id_uploaded', 'ID upload'],
+    ['release_signed', 'Photo release'],
+    ['emergency_signed', 'Emergency contact'],
+    ['bio_done', 'Bio'],
+    ['legal_done', 'Legal review']
+  ];
+  var lock = document.getElementById('lock'),
+      board = document.getElementById('board'),
+      foot = document.getElementById('foot'),
+      keyInput = document.getElementById('key'),
+      lockerr = document.getElementById('lockerr');
+
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+    return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+
+  function fmtDate(iso) {
+    try {
+      return new Date(iso).toLocaleString('en-US', { timeZone: 'America/Chicago', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    } catch (e) { return ''; }
+  }
+
+  function getKey() {
+    var q = new URLSearchParams(location.search).get('key');
+    if (q) { try { localStorage.setItem('ciobela_admin_key', q); } catch (e) {} return q; }
+    try { return localStorage.getItem('ciobela_admin_key') || ''; } catch (e) { return ''; }
+  }
+
+  function load(key) {
+    lockerr.hidden = true;
+    fetch(WORKER + '/admin?key=' + encodeURIComponent(key))
+      .then(function (r) { if (!r.ok) throw new Error('bad'); return r.json(); })
+      .then(function (j) {
+        if (!j || !Array.isArray(j.data)) throw new Error('bad');
+        try { localStorage.setItem('ciobela_admin_key', key); } catch (e) {}
+        render(j.data);
+      })
+      .catch(function () {
+        try { localStorage.removeItem('ciobela_admin_key'); } catch (e) {}
+        board.hidden = true; foot.hidden = true; lock.hidden = false; lockerr.hidden = false;
+      });
+  }
+
+  function render(people) {
+    lock.hidden = true; board.hidden = false; foot.hidden = false;
+    people.sort(function (a, b) {
+      var pa = (a.progress || {}).updated_at || '', pb = (b.progress || {}).updated_at || '';
+      return pb < pa ? -1 : pb > pa ? 1 : 0;
+    });
+    if (!people.length) { board.innerHTML = '<div class="empty">No stylists have started onboarding yet.</div>'; return; }
+    board.innerHTML = people.map(function (p) {
+      var pr = p.progress || {};
+      var doneCount = ITEMS.filter(function (it) { return pr[it[0]] === true; }).length;
+      var pct = Math.round(doneCount / ITEMS.length * 100);
+      var items = ITEMS.map(function (it) {
+        var done = pr[it[0]] === true;
+        return '<div class="item' + (done ? ' done' : '') + '"><span class="mark">✓</span><span class="lbl">' + esc(it[1]) + '</span></div>';
+      }).join('');
+      return '<div class="card">' +
+        (pr.onboarding_done ? '<span class="badge">Complete</span>' : '') +
+        '<div class="who">' + esc(p.name || p.email || 'Stylist') + '</div>' +
+        '<div class="email">' + esc(p.email || '') + '</div>' +
+        '<div class="count">' + doneCount + ' of ' + ITEMS.length + ' steps done</div>' +
+        '<div class="bar"><div style="width:' + pct + '%"></div></div>' +
+        items +
+        '<div class="meta">Last activity: ' + esc(fmtDate(pr.updated_at)) + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
+  document.getElementById('unlock').onclick = function () { load(keyInput.value.trim()); };
+  keyInput.onkeydown = function (e) { if (e.key === 'Enter') load(keyInput.value.trim()); };
+  document.getElementById('refresh').onclick = function () { load(getKey()); };
+  document.getElementById('signout').onclick = function () {
+    try { localStorage.removeItem('ciobela_admin_key'); } catch (e) {}
+    location.search = '';
+  };
+
+  var k = getKey();
+  if (k) load(k); else lock.hidden = false;
+})();
+</script>
+</body>
+</html>
