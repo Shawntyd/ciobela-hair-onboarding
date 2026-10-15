@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cio Bela — Hair Stylist Onboarding Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="onboarding-api.js"></script>
 <style>
 :root{--ink:#16120E;--cream:#F7F2EC;--warm:#EDE4D4;--gold:#B08D57;--gold2:#CFA96E;--mid:#7A6A55;--muted:#A8967E;--border:#D5C8B4;--white:#FFFFFF;--alert:#7C3B20;--alert-bg:#FBF0E9;--green:#2F5C42;--green-bg:#ECF4EF;--info:#1B4D6B;--info-bg:#EBF4FA;}
 
@@ -636,7 +636,7 @@ async function dbSave(profile) {
         contractor_email: email, contractor_name: profile.fullName,
         contract_signed: false, payment_signed: false, w9_signed: false,
         standards_signed: false, id_uploaded: false, release_signed: false,
-        emergency_signed: false, total_complete: 0, onboarding_done: false
+        emergency_signed: false, bio_done: false, legal_done: false, total_complete: 0, onboarding_done: false
       });
     }
     return true;
@@ -661,7 +661,7 @@ async function dbMarkDone(email, docId) {
     var map = {
       contract:'contract_signed', payment:'payment_signed', w9:'w9_signed',
       standards:'standards_signed', idupload:'id_uploaded', release:'release_signed',
-      emergency:'emergency_signed'
+      emergency:'emergency_signed', bio:'bio_done', legal:'legal_done'
     };
     var field = map[docId];
     if (!field) return;
@@ -768,7 +768,9 @@ function loadReturning() {
           contract: !!pg.contract_signed, payment: !!pg.payment_signed,
           w9: !!pg.w9_signed, standards: !!pg.standards_signed,
           idupload: !!pg.id_uploaded, release: !!pg.release_signed,
-          emergency: !!pg.emergency_signed
+          emergency: !!pg.emergency_signed,
+            bio:       !!pg.bio_done,
+            legal:     !!pg.legal_done
         };
       }
       lSave('cb_p', P); lSave('cb_c', C);
@@ -1016,7 +1018,9 @@ window.addEventListener('DOMContentLoaded', function() {
             standards: !!pg.standards_signed,
             idupload:  !!pg.id_uploaded,
             release:   !!pg.release_signed,
-            emergency: !!pg.emergency_signed
+            emergency: !!pg.emergency_signed,
+            bio:       !!pg.bio_done,
+            legal:     !!pg.legal_done
           };
         } else {
           C = sc || {};
