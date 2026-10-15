@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cio Bela — Hair Stylist Onboarding Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{--ink:#16120E;--cream:#F7F2EC;--warm:#EDE4D4;--gold:#B08D57;--gold2:#CFA96E;--mid:#7A6A55;--muted:#A8967E;--border:#D5C8B4;--white:#FFFFFF;--alert:#7C3B20;--alert-bg:#FBF0E9;--green:#2F5C42;--green-bg:#ECF4EF;--info:#1B4D6B;--info-bg:#EBF4FA;}
@@ -163,6 +163,230 @@ body{
 #intro hr{width:54px;border:0;border-top:1px solid #B8935A;margin:0;animation:introfade 1.2s .2s ease-out both}
 #intro small{font-family:'DM Sans',sans-serif;font-size:.66rem;letter-spacing:.36em;text-transform:uppercase;color:#D4B896;animation:introfade 1.2s .35s ease-out both}
 @keyframes introfade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+/* Welcome intro */
+#hw {
+    --cream: #F5F0E8;
+    --ink: #1A1714;
+    --gold: #C9A96E;
+    --warm-mid: #8C7B68;
+    --rule: rgba(201,169,110,0.35);
+  }
+#hw * { margin: 0; padding: 0; box-sizing: border-box; }
+#hw {
+    background: #2A1A12;
+    color: var(--ink);
+    font-family: 'DM Mono', monospace;
+    font-weight: 300;
+    width: 100%;
+  }
+#hw { padding: 40px 28px 80px; }
+#hw .hw-page {
+    max-width: 660px;
+    width: 100%;
+    background: var(--cream);
+    padding: 48px 40px;
+    margin: 0 auto;
+  }
+#hw .hw-header {
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 28px;
+    margin-bottom: 40px;
+    opacity: 0;
+    animation: hwrise 0.7s ease forwards;
+  }
+#hw .hw-salon-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 18px;
+  }
+#hw .hw-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(32px, 6vw, 48px);
+    font-weight: 300;
+    line-height: 1.1;
+    color: var(--ink);
+  }
+#hw .hw-headline em {
+    font-style: italic;
+    color: var(--gold);
+  }
+#hw .hw-subhead {
+    margin-top: 14px;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    color: var(--warm-mid);
+    line-height: 1.7;
+  }
+#hw .hw-section {
+    margin-bottom: 36px;
+    opacity: 0;
+    animation: hwrise 0.7s ease forwards;
+  }
+#hw .hw-section:nth-child(2) { animation-delay: 0.1s; }
+#hw .hw-section:nth-child(3) { animation-delay: 0.2s; }
+#hw .hw-section:nth-child(4) { animation-delay: 0.3s; }
+#hw .hw-section:nth-child(5) { animation-delay: 0.4s; }
+#hw .hw-section:nth-child(6) { animation-delay: 0.5s; }
+#hw .hw-section:nth-child(7) { animation-delay: 0.6s; }
+#hw .hw-section-label {
+    font-size: 9px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+#hw .hw-section-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+#hw .hw-section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+#hw .hw-bullets {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+#hw .hw-bullets li {
+    display: flex;
+    gap: 10px;
+    font-size: 12.5px;
+    line-height: 1.65;
+    color: var(--ink);
+  }
+#hw .hw-bullets li::before {
+    content: '—';
+    color: var(--ink);
+    font-size: 11px;
+    flex-shrink: 0;
+    padding-top: 2px;
+  }
+#hw .hw-bullets li strong {
+    font-weight: 400;
+    color: var(--ink);
+  }
+#hw .hw-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+#hw .hw-timeline-item {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 16px;
+    padding-bottom: 24px;
+    position: relative;
+  }
+#hw .hw-timeline-item:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 23px;
+    top: 28px;
+    bottom: 0;
+    width: 1px;
+    background: var(--rule);
+  }
+#hw .hw-step-num {
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+#hw .hw-step-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 17px;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+#hw .hw-step-detail {
+    font-size: 12px;
+    line-height: 1.65;
+    color: var(--warm-mid);
+  }
+#hw .hw-cta-block {
+    background: var(--ink);
+    padding: 32px 30px;
+    margin-top: 44px;
+    opacity: 0;
+    animation: hwrise 0.7s ease 0.65s forwards;
+  }
+#hw .hw-cta-label {
+    font-size: 9px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 12px;
+  }
+#hw .hw-cta-headline {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 26px;
+    font-weight: 300;
+    color: var(--cream);
+    line-height: 1.2;
+    margin-bottom: 18px;
+  }
+#hw .hw-cta-note {
+    font-size: 11.5px;
+    color: rgba(245,240,232,0.5);
+    line-height: 1.7;
+    margin-bottom: 24px;
+  }
+#hw .hw-cta-btn {
+    display: inline-block;
+    padding: 14px 32px;
+    background: transparent;
+    border: 1px solid var(--gold);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background 0.25s, color 0.25s;
+  }
+#hw .hw-cta-btn:hover {
+    background: var(--gold);
+    color: var(--ink);
+  }
+#hw .hw-footer-note {
+    margin-top: 40px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    color: var(--warm-mid);
+    border-top: 1px solid var(--rule);
+    padding-top: 20px;
+    opacity: 0;
+    animation: hwrise 0.7s ease 0.75s forwards;
+  }
+@keyframes hwrise {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+#hw{min-height:100vh;padding:40px 28px 80px;} #hw.active{display:block;}
+#hw .hw-ret{display:block;text-align:center;margin-top:18px;font-size:11px;letter-spacing:.12em;color:var(--warm-mid);cursor:pointer;text-decoration:underline;}
 </style>
 </head>
 <body>
@@ -196,6 +420,96 @@ body{
   </div>
 </div>
 
+<div class="screen" id="hw">
+<div class="hw-page">
+
+  <div class="hw-header">
+    <div class="hw-salon-name">Cio Bela Salons — Hair Stylist Onboarding</div>
+    <h1 class="hw-headline">You're in.<br><em>Here's what happens next.</em></h1>
+    <p class="hw-subhead">Welcome to Cio Bela. Below is your roadmap — what you're stepping into, how it works, and exactly what to do right now.</p>
+  </div>
+
+  <div class="hw-section">
+    <div class="hw-section-label">The setup</div>
+    <h2 class="hw-section-title">What you're stepping into</h2>
+    <ul class="hw-bullets">
+      <li><span>You operate as an independent 1099 hair stylist — your brand, your schedule, your clients, your income.</span></li>
+      <li><span>You're joining a <strong>full multi-service salon</strong> (hair, nails, lashes, waxing, tanning) in a space built to feel elevated, warm, and professional.</span></li>
+      <li><span><strong>One flat weekly rate, all-inclusive.</strong> Utilities, Wi-Fi, laundry, towels, shampoo bowls, and shared amenities are all covered. There are no surprise add-ons.</span></li>
+      <li><span>A <strong>12-month agreement</strong> that gives you a stable home for your business, with clear terms on both sides.</span></li>
+    </ul>
+  </div>
+
+  <div class="hw-section">
+    <div class="hw-section-label">Your business</div>
+    <h2 class="hw-section-title">Your clients stay yours</h2>
+    <ul class="hw-bullets">
+      <li><span>You're an established professional, and your book is yours. Bring your clientele with you.</span></li>
+      <li><span>Your own pricing, your own schedule, your own services. We provide the space; you run the business.</span></li>
+      <li><span>We build your <strong>public profile and booking presence</strong> so your clients can find you and rebook easily.</span></li>
+    </ul>
+  </div>
+
+  <div class="hw-section">
+    <div class="hw-section-label">The advantage</div>
+    <h2 class="hw-section-title">Why Cio Bela</h2>
+    <ul class="hw-bullets">
+      <li><span><strong>A finished, high-end environment.</strong> Your clients walk into a space that matches the level of your work.</span></li>
+      <li><span><strong>Real support.</strong> Cio Bela handles the building, the amenities, and the brand presence so you can focus on your chair.</span></li>
+      <li><span><strong>A full-service ecosystem.</strong> Hair, nails, lashes, waxing, and tanning under one roof means more reasons for clients to visit and to stay.</span></li>
+    </ul>
+  </div>
+
+  <div class="hw-section">
+    <div class="hw-section-label">Your roadmap</div>
+    <h2 class="hw-section-title">The next steps — in order</h2>
+    <div class="hw-timeline">
+      <div class="hw-timeline-item">
+        <div class="hw-step-num">01</div>
+        <div class="hw-step-content">
+          <div class="hw-step-title">Complete onboarding documents</div>
+          <div class="hw-step-detail">Your agreement, payment authorization, tax form, ID and license, and your profile and legal forms. Everything is in one place, and the link is below.</div>
+        </div>
+      </div>
+      <div class="hw-timeline-item">
+        <div class="hw-step-num">02</div>
+        <div class="hw-step-content">
+          <div class="hw-step-title">Choose your start date</div>
+          <div class="hw-step-detail">You pick your own lease start date inside your agreement, so your move-in lands when it works for your schedule and your clients.</div>
+        </div>
+      </div>
+      <div class="hw-timeline-item">
+        <div class="hw-step-num">03</div>
+        <div class="hw-step-content">
+          <div class="hw-step-title">Station setup & move-in</div>
+          <div class="hw-step-detail">We confirm your station and access, walk you through the space, and make sure everything is ready before your first client sits down.</div>
+        </div>
+      </div>
+      <div class="hw-timeline-item">
+        <div class="hw-step-num">04</div>
+        <div class="hw-step-content">
+          <div class="hw-step-title">Bring your clients, keep your business</div>
+          <div class="hw-step-detail">Your book stays yours. We get your profile live on our booking platform so your clients can find you and book you at Cio Bela.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="hw-cta-block">
+    <div class="hw-cta-label">Action required</div>
+    <div class="hw-cta-headline">Complete your onboarding<br>to secure your station.</div>
+    <p class="hw-cta-note">Your onboarding documents lock in your agreement and your start date. It only takes a few minutes, and you can save your progress and come back.</p>
+    <a href="#" class="hw-cta-btn" onclick="go('sp');return false;">Complete Onboarding →</a>
+    <span class="hw-ret" onclick="openModal()">Already started? Continue where you left off</span>
+  </div>
+
+  <div class="hw-footer-note">
+    Questions? Reach out directly — we'll get you sorted. Station and access details to follow once onboarding is complete.
+  </div>
+
+</div>
+</div>
+
 <div class="screen" id="sw">
   <div class="w-inner">
     <div class="w-rule"></div>
@@ -205,7 +519,7 @@ body{
     <p class="w-addr">27327 Robinson Rd. · Suites 3 &amp; 4 · Oak Ridge North, TX 77385</p>
     <div class="w-cards">
       <div class="w-card"><div class="n">1</div><div class="l">Profile</div></div>
-      <div class="w-card"><div class="n">7</div><div class="l">Documents</div></div>
+      <div class="w-card"><div class="n">9</div><div class="l">Documents</div></div>
       <div class="w-card"><div class="n">1x</div><div class="l">Enter Info</div></div>
     </div>
     <p class="w-note">Fill out your profile once. Your details auto-fill into every document. Return on any device with your email — your progress is always saved.</p>
@@ -247,7 +561,7 @@ body{
     </div>
     <div style="margin-top:24px;display:flex;gap:12px;flex-wrap:wrap;">
       <button class="btn-primary" onclick="saveProfile()">Save Profile &amp; Continue</button>
-      <button class="btn-ghost" onclick="go('sw')">Back</button>
+      <button class="btn-ghost" onclick="go('hw')">Back</button>
     </div>
   </div>
 </div>
@@ -722,7 +1036,7 @@ window.addEventListener('DOMContentLoaded', function() {
         if (completedDoc) { C[completedDoc] = true; lSave('cb_c', C); }
         go('sh'); buildHub();
       } else {
-        go('sw');
+        go('hw');
       }
     });
     return;
@@ -734,7 +1048,7 @@ window.addEventListener('DOMContentLoaded', function() {
     if (completedDoc) { C[completedDoc] = true; lSave('cb_c', C); }
     go('sh'); buildHub();
   } else {
-    go('sw');
+    go('hw');
   }
 });
 </script>
