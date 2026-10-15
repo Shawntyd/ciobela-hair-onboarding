@@ -628,7 +628,7 @@
     <div class="clause-card">
       <div class="clause-head"><span>1.2 — Tools of the Trade</span></div>
       <div class="clause-body">
-        The Salon provides the <em>licensed space</em>, shampoo bowls, and shared salon equipment available to the hair stylist team. <strong>Each stylist supplies and maintains their own professional tools</strong> — including shears, clippers, razors, combs, brushes, flat irons, curling irons, and blow dryers — and all color, chemical, and styling products used on their own clients. Shared consumables — including capes, towels, neck strips, and cleaning supplies — are shared among the hair stylist team. <strong>The cost of replenishing shared consumable inventory is divided equally among all active hair stylists</strong> when restocking is required.
+        The Salon provides the <em>licensed space</em>, shampoo bowls, and shared salon equipment available to the hair stylist team. <strong>Each stylist supplies and maintains their own professional tools</strong> — including shears, clippers, razors, combs, brushes, flat irons, curling irons, and blow dryers — and all color, chemical, and styling products used on their own clients. Shared consumables — including capes, towels, neck strips, and cleaning supplies — are <strong>provided by the Salon and included in weekly rent</strong>.
       </div>
     </div>
 
@@ -650,7 +650,7 @@
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" data-req="true">
-        <span class="check-label">I understand that shampoo bowls and shared salon equipment are provided by the Salon, and that I supply and maintain my own professional tools and products. I agree to share equally in the cost of replenishing shared consumables with the hair stylist team.</span>
+        <span class="check-label">I understand that shampoo bowls and shared salon equipment are provided by the Salon, and that I supply and maintain my own professional tools and products. I understand that shared consumables such as capes, towels, and cleaning supplies are included in my weekly rent.</span>
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" data-req="true">
@@ -684,9 +684,22 @@
     </div>
 
     <div class="clause-card">
-      <div class="clause-head"><span>2.2 — Tier Sovereignty</span></div>
+      <div class="clause-head"><span>2.2 — Lease Term, Rent &amp; Renewal</span></div>
       <div class="clause-body">
-        Transition between rental tiers is at the <strong>sole and absolute discretion of Salon Management</strong>. Tier changes will be communicated no less than 7 days in advance unless the change results from a material breach of this Agreement.
+        <strong>Term.</strong> This Agreement begins on the Lease Start Date selected below and continues for <strong>twelve (12) months</strong>.<br><br>
+        <strong>Rent.</strong> Weekly rent is <strong>$225.00</strong>, charged every Saturday under Section 2.1. Rent covers the station, utilities, Wi-Fi, laundry, towels, shampoo bowls, and all shared salon amenities, and is fixed for the initial term.<br><br>
+        <strong>Renewal.</strong> Unless either party gives the other <strong>written notice of non-renewal at least 60 days before the end of the term</strong>, this Agreement <strong>automatically renews for another twelve (12) months</strong>. Any change to rent for a renewal term must be given in writing at least 90 days before the renewal date.
+      </div>
+    </div>
+
+    <div class="field-group">
+      <div class="field">
+        <label>Lease Start Date <span style="color:var(--alert)">*</span></label>
+        <input type="date" id="lease-start" oninput="updateLeaseEnd()">
+      </div>
+      <div class="field">
+        <label>Initial Term Ends</label>
+        <input type="text" id="lease-end" readonly placeholder="Select a start date">
       </div>
     </div>
 
@@ -708,7 +721,7 @@
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" data-req="true">
-        <span class="check-label">I understand that <strong>tier changes are at management's discretion</strong> and agree to the associated rate adjustment.</span>
+        <span class="check-label">I agree to a <strong>12-month term at $225 per week</strong> beginning on my selected start date, which <strong>automatically renews for another 12 months</strong> unless either party gives written notice at least 60 days before the end of the term.</span>
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" data-req="true">
@@ -1009,9 +1022,9 @@
     </div>
 
     <div class="clause-card">
-      <div class="clause-head"><span>7.2 — Voluntary Termination / Resignation</span></div>
+      <div class="clause-head"><span>7.2 — Termination &amp; Notice</span></div>
       <div class="clause-body">
-        Contractor agrees to provide <strong>30 days written notice</strong> of resignation via email to the Salon's official email address. Early departure without proper notice may affect references or future standing with Cio Bela management.
+        Either party may end this Agreement before the end of the then-current term, or prevent renewal, by giving the other party <strong>60 days written notice</strong> by email. Rent remains due each week <strong>through the end of the notice period</strong>. Termination for cause under Section 7.1 is not affected by this notice requirement.
       </div>
     </div>
 
@@ -1037,7 +1050,7 @@
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" data-req="true">
-        <span class="check-label">I agree to provide <strong>30 days written notice</strong> of resignation via email to Cio Bela management.</span>
+        <span class="check-label">I understand that either party must give <strong>60 days written notice</strong> by email to end this Agreement early or prevent renewal, and that <strong>rent remains due through the notice period</strong>.</span>
       </label>
       <label class="check-item" onclick="toggleCheck(this)">
         <input type="checkbox" data-req="true">
@@ -1063,6 +1076,8 @@
       <div class="row"><span class="label">Contractor</span><span class="val" id="review-name">—</span></div>
       <div class="row"><span class="label">License #</span><span class="val" id="review-license">—</span></div>
       <div class="row"><span class="label">Email</span><span class="val" id="review-email">—</span></div>
+      <div class="row"><span class="label">Lease Term</span><span class="val" id="review-lease">—</span></div>
+      <div class="row"><span class="label">Weekly Rent</span><span class="val">$225.00</span></div>
       <div class="row"><span class="label">Agreement Date</span><span class="val" id="review-date">—</span></div>
       <div class="row"><span class="label">Time of Signing</span><span class="val" id="review-time">—</span></div>
     </div>
@@ -1258,7 +1273,9 @@
       if (!ok) { alert('Please complete all required fields before continuing.'); return false; }
     }
     if (p === 2) {
-      // No rate field — page 2 only requires checkbox acknowledgments
+      const ls = document.getElementById('lease-start');
+      if (!ls.value) { ls.classList.add('invalid'); alert('Please select your lease start date.'); return false; }
+      ls.classList.remove('invalid');
     }
     if (p === 4) {
       const yoe = document.getElementById('yoe');
@@ -1289,6 +1306,21 @@
     setTimeout(() => label.classList.toggle('checked', cb.checked), 0);
   }
 
+  // ── LEASE DATES ──
+  function leaseDates() {
+    const v = document.getElementById('lease-start').value;
+    if (!v) return null;
+    const p = v.split('-').map(Number);
+    const start = new Date(p[0], p[1]-1, p[2]);
+    const end = new Date(p[0]+1, p[1]-1, p[2]-1);
+    const fmt = d => d.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    return { start: fmt(start), end: fmt(end) };
+  }
+  function updateLeaseEnd() {
+    const d = leaseDates();
+    document.getElementById('lease-end').value = d ? d.end : '';
+  }
+
   // ── REVIEW POPULATE ──
   function populateReview() {
     const now = new Date();
@@ -1296,6 +1328,8 @@
     document.getElementById('review-license').textContent = document.getElementById('cont-license').value || '—';
     document.getElementById('review-email').textContent = document.getElementById('cont-email').value || '—';
     document.getElementById('review-date').textContent = now.toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'});
+    const ld = leaseDates();
+    document.getElementById('review-lease').textContent = ld ? (ld.start + ' – ' + ld.end) : '—';
     document.getElementById('review-time').textContent = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZoneName:'short'});
   }
 
@@ -1432,6 +1466,8 @@
         ['JURISDICTION', 'Montgomery County, Texas'],
         ['CONTRACTOR', document.getElementById('cont-name').value],
         ['LICENSE #', document.getElementById('cont-license').value],
+        ['LEASE TERM', (leaseDates() ? leaseDates().start + ' – ' + leaseDates().end : '')],
+        ['WEEKLY RENT', '$225.00'],
         ['EFFECTIVE DATE', dateStr],
         ['SIGNED', timeStr],
       ];
@@ -1459,7 +1495,7 @@
       clauseTitle('1.1 Economic Independence');
       bodyText('Contractor warrants that they are an independent business entity, in business for themselves, and not economically dependent upon the Salon. Contractor retains full authority over their own pricing, scheduling, and client relationships, within the bounds of this Agreement and Cio Bela Brand Standards.');
       clauseTitle('1.2 Tools of the Trade');
-      bodyText('The Salon provides the licensed space, shampoo bowls, and shared salon equipment available to the hair stylist team. Each stylist supplies and maintains their own professional tools (shears, clippers, razors, combs, brushes, flat irons, curling irons, blow dryers) and all color, chemical, and styling products used on their own clients. Shared consumables — including capes, towels, neck strips, and cleaning supplies — are shared among the hair stylist team and the cost of replenishing them is divided equally among all active hair stylists.');
+      bodyText('The Salon provides the licensed space, shampoo bowls, and shared salon equipment available to the hair stylist team. Each stylist supplies and maintains their own professional tools (shears, clippers, razors, combs, brushes, flat irons, curling irons, blow dryers) and all color, chemical, and styling products used on their own clients. Shared consumables — including capes, towels, neck strips, and cleaning supplies — are provided by the Salon and included in weekly rent.');
       clauseTitle('1.3 No Benefits / Waiver of Claims');
       bodyText('Contractor is NOT an employee of Cio Bela and is not entitled to any Salon-paid benefits, including health insurance, 401(k), paid time off, workers\' compensation, or unemployment benefits. Contractor explicitly waives any claim to such benefits under Texas law.');
 
@@ -1471,8 +1507,8 @@
       clauseTitle('2.1 Saturday Auto-Pay Authorization');
       bodyText('Contractor authorizes the Salon to charge the card on file every Saturday for the following week\'s service fee. The service fee is earned upon receipt. No refunds or pro-rating shall be granted for vacation, personal time off, illness, or any other reason.');
       alertLine('⚠  Declined charges that go unresolved by Sunday midnight constitute default and may trigger immediate lockout.');
-      clauseTitle('2.2 Tier Sovereignty');
-      bodyText('Transition between rental tiers is at the sole and absolute discretion of Salon Management. Tier changes will be communicated no less than 7 days in advance unless resulting from a material breach.');
+      clauseTitle('2.2 Lease Term, Rent & Renewal');
+      bodyText('Term: This Agreement begins on the Lease Start Date and continues for twelve (12) months' + (leaseDates() ? ' (' + leaseDates().start + ' through ' + leaseDates().end + ')' : '') + '. Rent: Weekly rent is $225.00, charged every Saturday, and covers the station, utilities, Wi-Fi, laundry, towels, shampoo bowls, and all shared salon amenities. Rent is fixed for the initial term. Renewal: Unless either party gives written notice of non-renewal at least 60 days before the end of the term, this Agreement automatically renews for another twelve (12) months. Any change to rent for a renewal term must be given in writing at least 90 days before the renewal date.');
       clauseTitle('2.3 Self-Help Right');
       bodyText('If Contractor fails to maintain their station in accordance with Brand Standards, the Salon may engage professional cleaners or repairmen and charge Contractor\'s card on file for the full cost of restoration without further notice.');
 
@@ -1543,8 +1579,8 @@
 
       clauseTitle('7.1 Immediate Lockout Conditions (Texas Property Code § 93.002)');
       bodyText('Salon reserves the right to execute immediate lockout and disable all digital access without advance notice for: failure to pay rent by Saturday midnight; sanitation or TDLR cross-contamination violations; conduct damaging the Salon\'s reputation; expired or revoked license; physical altercation or verbal abuse; or material breach of this Agreement.');
-      clauseTitle('7.2 Voluntary Termination / Resignation');
-      bodyText('Contractor agrees to provide 30 days written notice of resignation via email. Early departure without notice forfeits any remaining prepaid rent.');
+      clauseTitle('7.2 Termination & Notice');
+      bodyText('Either party may end this Agreement before the end of the then-current term, or prevent renewal, by giving the other party 60 days written notice by email. Rent remains due each week through the end of the notice period. Termination for cause under Section 7.1 is not affected by this notice requirement.');
       clauseTitle('7.3 Abandonment Policy');
       bodyText('Job Abandonment is defined as: removal of substantial equipment without notice; 48 consecutive hours of unexcused absence; or 3+ no-shows within a 30-day period. Upon abandonment determination, Salon may immediately re-assign the station and store belongings for 14 days before disposal.');
       clauseTitle('7.4 Legal & Dispute Resolution');
