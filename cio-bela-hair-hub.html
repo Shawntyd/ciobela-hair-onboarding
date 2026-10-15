@@ -380,6 +380,16 @@ body{
     opacity: 0;
     animation: hwrise 0.7s ease 0.75s forwards;
   }
+/* Welcome: small screens (phones, Wix iframe) */
+#hw .hw-cta-btn { display:block; width:100%; text-align:center; padding:15px 14px; letter-spacing:0.14em; line-height:1.5; }
+#hw .hw-ret { display:block; text-align:center; margin-top:18px; }
+@media (max-width: 600px) {
+  #hw.screen { padding: 0; }
+  #hw .hw-page { max-width: none; padding: 36px 22px 44px; }
+  #hw .hw-cta-block { padding: 28px 20px; margin-top: 36px; }
+  #hw .hw-cta-headline { font-size: 24px; }
+  #hw .hw-bullets li, #hw .hw-step-detail { overflow-wrap: break-word; }
+}
 @keyframes hwrise {
     from { opacity: 0; transform: translateY(14px); }
     to   { opacity: 1; transform: translateY(0); }
