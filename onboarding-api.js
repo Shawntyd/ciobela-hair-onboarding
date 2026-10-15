@@ -114,3 +114,56 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
   else run();
 })();
+
+/* Page tracker: records when each document is opened and how long the stylist is actively on it. */
+(function () {
+  var API = 'https://ciobela-onboarding.shawntyd96.workers.dev';
+  var f = (location.pathname.split('/').pop() || '').toLowerCase();
+  var PAGE = /hub/.test(f) ? 'hub' : /contract/.test(f) ? 'contract' : /payment/.test(f) ? 'payment'
+    : /w9/.test(f) ? 'w9' : /brand-standards/.test(f) ? 'standards' : /id-upload/.test(f) ? 'idupload'
+    : /photo-release/.test(f) ? 'release' : /emergency/.test(f) ? 'emergency'
+    : /bio/.test(f) ? 'bio' : /legal/.test(f) ? 'legal' : '';
+  if (!PAGE) return;
+
+  var sid = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
+  var start = new Date().toISOString();
+  var active = 0, lastAct = Date.now(), sent = -1, opened = false;
+  var IDLE_MS = 120000;
+
+  function note() { lastAct = Date.now(); }
+  ['pointerdown', 'keydown', 'scroll', 'touchstart', 'mousemove', 'input'].forEach(function (ev) {
+    window.addEventListener(ev, note, { passive: true, capture: true });
+  });
+
+  function readJSON(store, key) { try { return JSON.parse(store.getItem(key) || 'null'); } catch (e) { return null; } }
+  function email() {
+    var e = '';
+    try { e = (new URLSearchParams(location.search).get('email') || ''); } catch (x) {}
+    if (!e) { var p = readJSON(window.sessionStorage, 'cb_prefill'); e = (p && p.email) || ''; }
+    if (!e) { var q = readJSON(window.localStorage, 'cb_p'); e = (q && q.email) || ''; }
+    e = String(e).toLowerCase().trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) ? e : '';
+  }
+
+  function send() {
+    var em = email();
+    if (!em) return;
+    if (opened && active === sent) return;
+    opened = true; sent = active;
+    try {
+      fetch(API + '/visit', {
+        method: 'POST', keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: em, page: PAGE, sid: sid, start: start, active: active })
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
+  setInterval(function () {
+    if (document.visibilityState === 'visible' && Date.now() - lastAct < IDLE_MS) active += 1;
+  }, 1000);
+  setInterval(send, 10000);
+  setTimeout(send, 1500);
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'hidden') send(); });
+  window.addEventListener('pagehide', send);
+})();

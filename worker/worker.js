@@ -3,6 +3,9 @@
 
 const ALLOWED_ORIGINS = ['https://shawntyd.github.io'];
 const MAX_BODY = 20000;
+const DONE_FIELDS = ['contract_signed','payment_signed','w9_signed','standards_signed','id_uploaded',
+                     'release_signed','emergency_signed','bio_done','legal_done'];
+const PAGES = ['hub','contract','payment','w9','standards','idupload','release','emergency','bio','legal'];
 
 const TABLES = {
   contractor_profiles: {
@@ -48,8 +51,8 @@ function originBlocked(request) {
 }
 
 async function collectAll(env) {
-  const out = { exported_at: new Date().toISOString(), profiles: [], progress: [] };
-  for (const pair of [['profile:', out.profiles], ['progress:', out.progress]]) {
+  const out = { exported_at: new Date().toISOString(), profiles: [], progress: [], visits: [] };
+  for (const pair of [['profile:', out.profiles], ['progress:', out.progress], ['visits:', out.visits]]) {
     let cursor;
     do {
       const page = await env.ONBOARDING.list({ prefix: pair[0], cursor: cursor });
@@ -134,8 +137,47 @@ export default {
         });
         row[t.emailCol] = email;
         row.updated_at = new Date().toISOString();
+        if (body.table === 'contractor_progress') {
+          const before = existingRaw ? JSON.parse(existingRaw) : {};
+          const doneAt = row.done_at && typeof row.done_at === 'object' ? row.done_at : {};
+          DONE_FIELDS.forEach(function (f) {
+            if (row[f] === true && before[f] !== true && !doneAt[f]) doneAt[f] = row.updated_at;
+          });
+          row.done_at = doneAt;
+        }
         await env.ONBOARDING.put(key, JSON.stringify(row));
         return reply(request, { data: [row], error: null });
+      }
+
+      // ---- page visit / time-on-page tracking ----
+      if (url.pathname === '/visit' && request.method === 'POST') {
+        if (originBlocked(request)) return reply(request, { error: 'forbidden' }, 403);
+        const text = await request.text();
+        if (text.length > 2000) return reply(request, { error: 'too large' }, 413);
+        const b = JSON.parse(text);
+        const email = cleanEmail(b.email);
+        const page = String(b.page || '');
+        const sid = String(b.sid || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 24);
+        const active = Math.max(0, Math.min(86400, Math.round(Number(b.active) || 0)));
+        const start = new Date(b.start);
+        if (!validEmail(email) || PAGES.indexOf(page) < 0 || !sid || isNaN(start.getTime())) {
+          return reply(request, { error: 'bad request' }, 400);
+        }
+        const vkey = 'visits:' + email;
+        const rec = JSON.parse((await env.ONBOARDING.get(vkey)) || '{"email":"' + email + '","pages":{}}');
+        rec.email = email;
+        const pg = rec.pages[page] || (rec.pages[page] = { first: start.toISOString(), last: null, base: 0, visits: 0, sessions: {} });
+        if (!pg.sessions[sid]) { pg.sessions[sid] = { start: start.toISOString(), active: 0 }; pg.visits += 1; }
+        pg.sessions[sid].active = Math.max(pg.sessions[sid].active, active);
+        if (start.toISOString() < pg.first) pg.first = start.toISOString();
+        pg.last = new Date().toISOString();
+        const ids = Object.keys(pg.sessions).sort(function (a, c) { return pg.sessions[a].start < pg.sessions[c].start ? -1 : 1; });
+        while (ids.length > 30) { const old = ids.shift(); pg.base += pg.sessions[old].active; delete pg.sessions[old]; }
+        let secs = pg.base;
+        Object.keys(pg.sessions).forEach(function (s) { secs += pg.sessions[s].active; });
+        pg.seconds = secs;
+        await env.ONBOARDING.put(vkey, JSON.stringify(rec));
+        return reply(request, { ok: true });
       }
 
       // ---- owner overview (needs ADMIN_KEY secret) ----
@@ -151,7 +193,13 @@ export default {
             const email = k.name.slice('progress:'.length);
             const prog = JSON.parse((await env.ONBOARDING.get(k.name)) || '{}');
             const prof = JSON.parse((await env.ONBOARDING.get('profile:' + email)) || '{}');
-            out.push({ email: email, name: prof.full_name || prog.contractor_name || '', progress: prog });
+            const vis = JSON.parse((await env.ONBOARDING.get('visits:' + email)) || '{}');
+            const pages = {};
+            Object.keys(vis.pages || {}).forEach(function (p) {
+              const x = vis.pages[p];
+              pages[p] = { first: x.first, last: x.last, visits: x.visits, seconds: x.seconds };
+            });
+            out.push({ email: email, name: prof.full_name || prog.contractor_name || '', progress: prog, visits: pages });
           }
           cursor = page.list_complete ? undefined : page.cursor;
         } while (cursor);
