@@ -50,3 +50,67 @@
     createClient: function () { return { from: function (table) { return new Query(table); } }; }
   };
 })();
+
+/* Auto-fill: puts the stylist's saved profile into any matching form field (only fields left empty). */
+(function () {
+  var MAP = {
+    'cont-name': 'fullName', 'c-name': 'fullName', 'f-fullname': 'fullName',
+    'cont-preferred': 'preferredName', 'c-preferred': 'preferredName',
+    'f-display-name': 'preferredName|fullName',
+    'cont-phone': 'phone', 'c-phone': 'phone', 'sig-phone': 'phone',
+    'cont-email': 'email', 'c-email': 'email', 'sig-email': 'email', 'f-email': 'email',
+    'cont-dob': 'dateOfBirth', 'c-dob': 'dateOfBirth',
+    'cont-address': 'address', 'c-address': 'address',
+    'cont-license': 'licenseNumber', 'lic-num': 'licenseNumber', 'sig-license': 'licenseNumber',
+    'cont-lic-exp': 'licenseExpiration', 'lic-exp': 'licenseExpiration',
+    'emerg-name': 'emergencyName', 'emerg-phone': 'emergencyPhone',
+    'ec1-name': 'emergencyName', 'ec1-phone': 'emergencyPhone'
+  };
+  var SNAKE = { fullName: 'full_name', preferredName: 'preferred_name', dateOfBirth: 'date_of_birth',
+    licenseNumber: 'license_number', licenseExpiration: 'license_expiration',
+    emergencyName: 'emergency_name', emergencyPhone: 'emergency_phone' };
+
+  function pick(p, key) {
+    var keys = key.split('|');
+    for (var i = 0; i < keys.length; i++) {
+      var v = p[keys[i]] || p[SNAKE[keys[i]]];
+      if (v) return v;
+    }
+    return '';
+  }
+  function fill(p) {
+    if (!p) return;
+    Object.keys(MAP).forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el || el.value) return;
+      var v = pick(p, MAP[id]);
+      if (!v) return;
+      el.value = v;
+      try {
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+      } catch (e) {}
+    });
+  }
+  function read(store, key) {
+    try { return JSON.parse(store.getItem(key) || 'null'); } catch (e) { return null; }
+  }
+  function run() {
+    var em = '';
+    try { em = (new URLSearchParams(location.search).get('email') || '').toLowerCase().trim(); } catch (e) {}
+    var p = read(window.sessionStorage, 'cb_prefill');
+    if (!p) {
+      var saved = read(window.localStorage, 'cb_p');
+      if (saved && (!em || String(saved.email || '').toLowerCase().trim() === em)) p = saved;
+    }
+    fill(p);
+    if (em) {
+      try {
+        window.supabase.createClient().from('contractor_profiles').select('*').eq('email', em)
+          .then(function (r) { if (r && r.data && r.data.length) fill(r.data[0]); });
+      } catch (e) {}
+    }
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', run);
+  else run();
+})();
