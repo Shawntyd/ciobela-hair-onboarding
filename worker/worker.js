@@ -5,6 +5,7 @@ const ALLOWED_ORIGINS = ['https://shawntyd.github.io'];
 const MAX_BODY = 20000;
 const DONE_FIELDS = ['contract_signed','payment_signed','w9_signed','standards_signed','id_uploaded',
                      'release_signed','emergency_signed','bio_done','legal_done'];
+const SERVICES = ['nail','waxing','lash','hair'];
 const PAGES = ['hub','contract','payment','w9','standards','idupload','release','emergency','bio','legal'];
 
 const TABLES = {
@@ -50,9 +51,24 @@ function originBlocked(request) {
   return !!origin && !ALLOWED_ORIGINS.includes(origin);
 }
 
+function applyVisit(rec, page, sid, start, active) {
+  rec.pages = rec.pages || {};
+  const iso = start.toISOString();
+  const pg = rec.pages[page] || (rec.pages[page] = { first: iso, last: null, base: 0, visits: 0, sessions: {} });
+  if (!pg.sessions[sid]) { pg.sessions[sid] = { start: iso, active: 0 }; pg.visits += 1; }
+  pg.sessions[sid].active = Math.max(pg.sessions[sid].active, active);
+  if (iso < pg.first) pg.first = iso;
+  pg.last = new Date().toISOString();
+  const ids = Object.keys(pg.sessions).sort(function (a, c) { return pg.sessions[a].start < pg.sessions[c].start ? -1 : 1; });
+  while (ids.length > 30) { const old = ids.shift(); pg.base += pg.sessions[old].active; delete pg.sessions[old]; }
+  let secs = pg.base;
+  Object.keys(pg.sessions).forEach(function (s) { secs += pg.sessions[s].active; });
+  pg.seconds = secs;
+}
+
 async function collectAll(env) {
-  const out = { exported_at: new Date().toISOString(), profiles: [], progress: [], visits: [] };
-  for (const pair of [['profile:', out.profiles], ['progress:', out.progress], ['visits:', out.visits]]) {
+  const out = { exported_at: new Date().toISOString(), profiles: [], progress: [], visits: [], anonymous_visitors: [] };
+  for (const pair of [['profile:', out.profiles], ['progress:', out.progress], ['visits:', out.visits], ['anon:', out.anonymous_visitors]]) {
     let cursor;
     do {
       const page = await env.ONBOARDING.list({ prefix: pair[0], cursor: cursor });
@@ -149,34 +165,37 @@ export default {
         return reply(request, { data: [row], error: null });
       }
 
-      // ---- page visit / time-on-page tracking ----
+      // ---- page visit / time-on-page tracking (known stylist or anonymous device) ----
       if (url.pathname === '/visit' && request.method === 'POST') {
         if (originBlocked(request)) return reply(request, { error: 'forbidden' }, 403);
         const text = await request.text();
         if (text.length > 2000) return reply(request, { error: 'too large' }, 413);
         const b = JSON.parse(text);
         const email = cleanEmail(b.email);
+        const device = String(b.device || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 32);
+        const service = SERVICES.indexOf(b.service) > -1 ? b.service : '';
         const page = String(b.page || '');
         const sid = String(b.sid || '').replace(/[^a-zA-Z0-9]/g, '').slice(0, 24);
         const active = Math.max(0, Math.min(86400, Math.round(Number(b.active) || 0)));
         const start = new Date(b.start);
-        if (!validEmail(email) || PAGES.indexOf(page) < 0 || !sid || isNaN(start.getTime())) {
+        const haveEmail = validEmail(email);
+        if ((!haveEmail && device.length < 8) || PAGES.indexOf(page) < 0 || !sid || isNaN(start.getTime())) {
           return reply(request, { error: 'bad request' }, 400);
         }
-        const vkey = 'visits:' + email;
-        const rec = JSON.parse((await env.ONBOARDING.get(vkey)) || '{"email":"' + email + '","pages":{}}');
-        rec.email = email;
-        const pg = rec.pages[page] || (rec.pages[page] = { first: start.toISOString(), last: null, base: 0, visits: 0, sessions: {} });
-        if (!pg.sessions[sid]) { pg.sessions[sid] = { start: start.toISOString(), active: 0 }; pg.visits += 1; }
-        pg.sessions[sid].active = Math.max(pg.sessions[sid].active, active);
-        if (start.toISOString() < pg.first) pg.first = start.toISOString();
-        pg.last = new Date().toISOString();
-        const ids = Object.keys(pg.sessions).sort(function (a, c) { return pg.sessions[a].start < pg.sessions[c].start ? -1 : 1; });
-        while (ids.length > 30) { const old = ids.shift(); pg.base += pg.sessions[old].active; delete pg.sessions[old]; }
-        let secs = pg.base;
-        Object.keys(pg.sessions).forEach(function (s) { secs += pg.sessions[s].active; });
-        pg.seconds = secs;
+        const vkey = haveEmail ? 'visits:' + email : 'anon:' + device;
+        const rec = JSON.parse((await env.ONBOARDING.get(vkey)) || '{"pages":{}}');
+        if (haveEmail) rec.email = email; else { rec.device = device; rec.service = rec.service || service; }
+        applyVisit(rec, page, sid, start, active);
         await env.ONBOARDING.put(vkey, JSON.stringify(rec));
+        // once a visitor gives an email, mark their earlier anonymous visits as that person
+        if (haveEmail && device.length >= 8) {
+          const akey = 'anon:' + device;
+          const araw = await env.ONBOARDING.get(akey);
+          if (araw) {
+            const arec = JSON.parse(araw);
+            if (arec.email !== email) { arec.email = email; await env.ONBOARDING.put(akey, JSON.stringify(arec)); }
+          }
+        }
         return reply(request, { ok: true });
       }
 
@@ -203,7 +222,25 @@ export default {
           }
           cursor = page.list_complete ? undefined : page.cursor;
         } while (cursor);
-        return reply(request, { data: out });
+        const visitors = [];
+        let c2;
+        do {
+          const pg2 = await env.ONBOARDING.list({ prefix: 'anon:', cursor: c2 });
+          for (const k of pg2.keys) {
+            const a = JSON.parse((await env.ONBOARDING.get(k.name)) || '{}');
+            let first = null, last = null, visitsN = 0, secs = 0;
+            Object.keys(a.pages || {}).forEach(function (p) {
+              const x = a.pages[p];
+              if (!first || x.first < first) first = x.first;
+              if (!last || x.last > last) last = x.last;
+              visitsN += x.visits || 0; secs += x.seconds || 0;
+            });
+            visitors.push({ id: String(a.device || '').slice(0, 6), service: a.service || '', email: a.email || '',
+                            first: first, last: last, visits: visitsN, seconds: secs });
+          }
+          c2 = pg2.list_complete ? undefined : pg2.cursor;
+        } while (c2);
+        return reply(request, { data: out, visitors: visitors });
       }
 
       // ---- full export for download (needs ADMIN_KEY) ----

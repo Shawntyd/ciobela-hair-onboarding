@@ -125,6 +125,18 @@
     : /bio/.test(f) ? 'bio' : /legal/.test(f) ? 'legal' : '';
   if (!PAGE) return;
 
+  var SVC = /hair/.test(location.pathname.toLowerCase()) ? 'hair' : /waxing/.test(location.pathname.toLowerCase()) ? 'waxing'
+    : /lash/.test(location.pathname.toLowerCase()) ? 'lash' : 'nail';
+  function deviceId() {
+    var d = '';
+    try { d = localStorage.getItem('cb_dev') || ''; } catch (e) {}
+    if (!d) {
+      d = Math.random().toString(36).slice(2, 12) + Date.now().toString(36);
+      try { localStorage.setItem('cb_dev', d); } catch (e) {}
+    }
+    return d;
+  }
+  var DEVICE = deviceId();
   var sid = Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
   var start = new Date().toISOString();
   var active = 0, lastAct = Date.now(), sent = -1, opened = false;
@@ -147,14 +159,13 @@
 
   function send() {
     var em = email();
-    if (!em) return;
     if (opened && active === sent) return;
     opened = true; sent = active;
     try {
       fetch(API + '/visit', {
         method: 'POST', keepalive: true,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: em, page: PAGE, sid: sid, start: start, active: active })
+        body: JSON.stringify({ email: em, device: DEVICE, service: SVC, page: PAGE, sid: sid, start: start, active: active })
       }).catch(function () {});
     } catch (e) {}
   }

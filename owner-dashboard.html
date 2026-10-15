@@ -109,6 +109,7 @@
       .then(function (j) {
         if (!j || !Array.isArray(j.data)) throw new Error('bad');
         try { localStorage.setItem('ciobela_admin_key', key); } catch (e) {}
+        VISITORS = Array.isArray(j.visitors) ? j.visitors : [];
         render(j.data);
       })
       .catch(function () {
@@ -117,8 +118,8 @@
       });
   }
 
-  var SVC = { all: 'All', nail: 'Nail', waxing: 'Waxing', lash: 'Lash', hair: 'Hair' };
-  var ALL = [], filter = 'all';
+  var SVC = { all: 'All', nail: 'Nail', waxing: 'Waxing', lash: 'Lash', hair: 'Hair', visitors: 'Visitors' };
+  var ALL = [], VISITORS = [], filter = 'all';
   function drawTabs() {
     var tabs = document.getElementById('tabs');
     tabs.hidden = false;
@@ -130,10 +131,32 @@
     });
   }
 
+  function renderVisitors() {
+    var now = Date.now(), day = 86400000;
+    var today = VISITORS.filter(function (v) { return v.last && now - new Date(v.last).getTime() < day; }).length;
+    var week = VISITORS.filter(function (v) { return v.last && now - new Date(v.last).getTime() < 7 * day; }).length;
+    var notStarted = VISITORS.filter(function (v) { return !v.email; }).length;
+    var list = VISITORS.slice().sort(function (a, b) { return (b.last || '') < (a.last || '') ? -1 : 1; });
+    var head = '<div class="card"><div class="who">' + VISITORS.length + ' visitor' + (VISITORS.length === 1 ? '' : 's') + ' total</div>' +
+      '<div class="count">' + today + ' in the last 24 hours · ' + week + ' in the last 7 days · ' + notStarted + ' haven\'t started</div>' +
+      '<div class="meta">Each visitor is one device (a phone or computer). No names are collected until someone fills in her profile.</div></div>';
+    if (!list.length) { board.innerHTML = head + '<div class="empty">No visits recorded yet.</div>'; return; }
+    board.innerHTML = head + list.map(function (v) {
+      return '<div class="card">' +
+        (v.service ? '<div class="svc">' + esc(SVC[v.service] || v.service) + '</div>' : '') +
+        '<div class="who">Visitor ' + esc(v.id) + '</div>' +
+        '<div class="email">' + (v.email ? 'Signed up as ' + esc(v.email) : "Hasn't started onboarding") + '</div>' +
+        '<div class="count">First visit ' + esc(fmtDate(v.first)) + ' · Last ' + esc(fmtDate(v.last)) + '</div>' +
+        '<div class="count">' + esc(fmtDur(v.seconds)) + ' on page · ' + (v.visits || 0) + ' visit' + (v.visits === 1 ? '' : 's') + '</div>' +
+        '</div>';
+    }).join('');
+  }
+
   function render(people) {
     ALL = people;
     lock.hidden = true; board.hidden = false; foot.hidden = false;
     drawTabs();
+    if (filter === 'visitors') { renderVisitors(); return; }
     people = people.filter(function (p) { return filter === 'all' || (p.progress || {}).service === filter; });
     people.sort(function (a, b) {
       var pa = (a.progress || {}).updated_at || '', pb = (b.progress || {}).updated_at || '';
