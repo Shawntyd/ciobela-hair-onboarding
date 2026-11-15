@@ -7,6 +7,19 @@ const DONE_FIELDS = ['contract_signed','payment_signed','w9_signed','standards_s
                      'release_signed','emergency_signed','bio_done','legal_done'];
 const SERVICES = ['nail','waxing','lash','hair'];
 const PAGES = ['hub','contract','payment','w9','standards','idupload','release','emergency','bio','legal'];
+// Form answers saved on Submit (W-9 and payment pages never send them)
+const MAX_ANSWERS_BODY = 60000;
+const MAX_ANSWER_ITEMS = 300;
+const ANSWER_FORM_RE = /^[a-z0-9-]{2,48}$/;
+const BLOCKED_FORMS = /w9|payment/;
+// Test submissions (claude-test...@ciobelasalons.com) delete themselves after 1 hour
+const TEST_EMAIL_RE = /^claude-test[a-z0-9.+-]*@ciobelasalons\.com$/;
+function putOpts(email) { return TEST_EMAIL_RE.test(email || '') ? { expirationTtl: 3600 } : undefined; }
+// Headshot and cosmetology license photos (shrunk JPEGs). Government ID photos are never sent here.
+// Kept out of the nightly GitHub backup because of their size.
+const PHOTO_SLOTS = ['headshot', 'license-front', 'license-back'];
+const MAX_PHOTO_BODY = 3000000;
+function adminOk(env, url) { return !!env.ADMIN_KEY && url.searchParams.get('key') === env.ADMIN_KEY; }
 
 const TABLES = {
   contractor_profiles: {
@@ -67,8 +80,8 @@ function applyVisit(rec, page, sid, start, active) {
 }
 
 async function collectAll(env) {
-  const out = { exported_at: new Date().toISOString(), profiles: [], progress: [], visits: [], anonymous_visitors: [] };
-  for (const pair of [['profile:', out.profiles], ['progress:', out.progress], ['visits:', out.visits], ['anon:', out.anonymous_visitors]]) {
+  const out = { exported_at: new Date().toISOString(), profiles: [], progress: [], visits: [], anonymous_visitors: [], answers: [] };
+  for (const pair of [['profile:', out.profiles], ['progress:', out.progress], ['visits:', out.visits], ['anon:', out.anonymous_visitors], ['answers:', out.answers]]) {
     let cursor;
     do {
       const page = await env.ONBOARDING.list({ prefix: pair[0], cursor: cursor });
@@ -161,8 +174,70 @@ export default {
           });
           row.done_at = doneAt;
         }
-        await env.ONBOARDING.put(key, JSON.stringify(row));
+        await env.ONBOARDING.put(key, JSON.stringify(row), putOpts(email));
         return reply(request, { data: [row], error: null });
+      }
+
+      // ---- save one form's answers when the stylist submits it ----
+      if (url.pathname === '/answers' && request.method === 'POST') {
+        if (originBlocked(request)) return reply(request, { error: 'forbidden' }, 403);
+        const text = await request.text();
+        if (text.length > MAX_ANSWERS_BODY) return reply(request, { error: 'too large' }, 413);
+        const b = JSON.parse(text);
+        const email = cleanEmail(b.email);
+        const form = String(b.form || '').toLowerCase();
+        if (!validEmail(email) || !ANSWER_FORM_RE.test(form) || BLOCKED_FORMS.test(form) || !Array.isArray(b.items)) {
+          return reply(request, { error: 'bad request' }, 400);
+        }
+        const items = [];
+        b.items.slice(0, MAX_ANSWER_ITEMS).forEach(function (it) {
+          if (!it || typeof it !== 'object') return;
+          const v = String(it.v == null ? '' : it.v).slice(0, 2000);
+          if (!v.trim()) return;
+          items.push({ s: String(it.s || '').slice(0, 80), l: String(it.l || '').slice(0, 160), v: v });
+        });
+        const akey = 'answers:' + email;
+        const rec = JSON.parse((await env.ONBOARDING.get(akey)) || '{}');
+        rec.email = email;
+        rec.forms = rec.forms && typeof rec.forms === 'object' ? rec.forms : {};
+        rec.forms[form] = {
+          service: SERVICES.indexOf(b.service) > -1 ? b.service : '',
+          submitted_at: new Date().toISOString(),
+          items: items
+        };
+        await env.ONBOARDING.put(akey, JSON.stringify(rec), putOpts(email));
+        return reply(request, { ok: true, saved: items.length });
+      }
+
+      // ---- save one photo (headshot or license) when the stylist submits the ID page ----
+      if (url.pathname === '/photo' && request.method === 'POST') {
+        if (originBlocked(request)) return reply(request, { error: 'forbidden' }, 403);
+        const text = await request.text();
+        if (text.length > MAX_PHOTO_BODY) return reply(request, { error: 'too large' }, 413);
+        const b = JSON.parse(text);
+        const email = cleanEmail(b.email);
+        const slot = String(b.slot || '');
+        const data = typeof b.data === 'string' ? b.data : '';
+        if (!validEmail(email) || PHOTO_SLOTS.indexOf(slot) < 0 || data.indexOf('data:image/jpeg;base64,') !== 0 || data.length < 100) {
+          return reply(request, { error: 'bad request' }, 400);
+        }
+        const meta = { uploaded_at: new Date().toISOString(), service: SERVICES.indexOf(b.service) > -1 ? b.service : '' };
+        await env.ONBOARDING.put('photo:' + email + ':' + slot, data, Object.assign({ metadata: meta }, putOpts(email) || {}));
+        return reply(request, { ok: true });
+      }
+
+      // ---- view one photo (owner only) ----
+      if (url.pathname === '/photo' && request.method === 'GET') {
+        if (!adminOk(env, url)) return reply(request, { error: 'not found' }, 404);
+        const email = cleanEmail(url.searchParams.get('email'));
+        const slot = String(url.searchParams.get('slot') || '');
+        if (!validEmail(email) || PHOTO_SLOTS.indexOf(slot) < 0) return reply(request, { error: 'bad request' }, 400);
+        const v = await env.ONBOARDING.get('photo:' + email + ':' + slot);
+        if (!v) return reply(request, { error: 'not found' }, 404);
+        const bin = atob(v.slice(v.indexOf(',') + 1));
+        const bytes = new Uint8Array(bin.length);
+        for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new Response(bytes, { headers: Object.assign({ 'Content-Type': 'image/jpeg', 'Cache-Control': 'private, no-store' }, corsHeaders(request)) });
       }
 
       // ---- page visit / time-on-page tracking (known stylist or anonymous device) ----
@@ -186,9 +261,9 @@ export default {
         const rec = JSON.parse((await env.ONBOARDING.get(vkey)) || '{"pages":{}}');
         if (haveEmail) rec.email = email; else { rec.device = device; rec.service = rec.service || service; }
         applyVisit(rec, page, sid, start, active);
-        await env.ONBOARDING.put(vkey, JSON.stringify(rec));
+        await env.ONBOARDING.put(vkey, JSON.stringify(rec), haveEmail ? putOpts(email) : undefined);
         // once a visitor gives an email, mark their earlier anonymous visits as that person
-        if (haveEmail && device.length >= 8) {
+        if (haveEmail && device.length >= 8 && !TEST_EMAIL_RE.test(email)) {
           const akey = 'anon:' + device;
           const araw = await env.ONBOARDING.get(akey);
           if (araw) {
@@ -218,7 +293,14 @@ export default {
               const x = vis.pages[p];
               pages[p] = { first: x.first, last: x.last, visits: x.visits, seconds: x.seconds };
             });
-            out.push({ email: email, name: prof.full_name || prog.contractor_name || '', progress: prog, visits: pages });
+            const ans = JSON.parse((await env.ONBOARDING.get('answers:' + email)) || '{}');
+            const photos = [];
+            const pl = await env.ONBOARDING.list({ prefix: 'photo:' + email + ':' });
+            pl.keys.forEach(function (pk) {
+              photos.push({ slot: pk.name.slice(('photo:' + email + ':').length), uploaded_at: (pk.metadata || {}).uploaded_at || '' });
+            });
+            out.push({ email: email, name: prof.full_name || prog.contractor_name || '', progress: prog, visits: pages,
+                       answers: ans.forms || {}, photos: photos });
           }
           cursor = page.list_complete ? undefined : page.cursor;
         } while (cursor);
