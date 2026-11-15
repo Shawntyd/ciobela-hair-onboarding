@@ -37,6 +37,22 @@
   .tab.on { background: var(--gold); color: #141414; border-color: var(--gold); }
   .svc { color: var(--gold); font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; }
   .empty { text-align: center; color: var(--dim); padding: 40px 0; }
+  .ans { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; }
+  .ans > summary { cursor: pointer; color: var(--gold); font-size: 14px; font-weight: 600; list-style: none; padding: 4px 0; }
+  .ans > summary::-webkit-details-marker { display: none; }
+  .ans > summary::before { content: '+ '; }
+  .ans[open] > summary::before { content: '\2212\00a0'; }
+  .ans-form { margin-top: 12px; }
+  .ans-title { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: var(--txt); }
+  .ans-when { font-size: 12px; color: var(--dim); margin-bottom: 6px; }
+  .ans-sec { font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--gold); margin: 10px 0 2px; }
+  .ans-row { display: flex; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 14px; }
+  .ans-l { flex: 1 1 50%; color: var(--dim); min-width: 0; overflow-wrap: anywhere; }
+  .ans-v { flex: 1 1 50%; color: var(--txt); min-width: 0; overflow-wrap: anywhere; white-space: pre-wrap; }
+  .ans-note { font-size: 12px; color: var(--dim); margin-top: 10px; }
+  .pics { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+  .pic { width: calc(33.333% - 7px); min-width: 0; text-decoration: none; color: var(--dim); font-size: 12px; }
+  .pic img { display: block; width: 100%; aspect-ratio: 3 / 4; object-fit: cover; border-radius: 8px; background: #0f0f0f; border: 1px solid var(--line); margin-bottom: 4px; }
 </style>
 </head>
 <body>
@@ -152,6 +168,43 @@
     }).join('');
   }
 
+  var FORM_ORDER = [[/bio/, 'Bio & profile'], [/contract/, 'Contractor agreement'], [/id-upload/, 'ID & license'],
+    [/emergency/, 'Emergency contact'], [/photo-release/, 'Photo release'], [/brand-standards/, 'Brand standards'], [/legal/, 'Legal review']];
+  function formRank(k) { for (var i = 0; i < FORM_ORDER.length; i++) if (FORM_ORDER[i][0].test(k)) return i; return 99; }
+  function formTitle(k) { var i = formRank(k); return i < 99 ? FORM_ORDER[i][1] : k; }
+
+  function answersHtml(ans) {
+    var keys = Object.keys(ans || {}).filter(function (k) { return ans[k] && Array.isArray(ans[k].items) && ans[k].items.length; });
+    if (!keys.length) return '';
+    keys.sort(function (a, b) { return formRank(a) - formRank(b); });
+    var body = keys.map(function (k) {
+      var f = ans[k], sec = null;
+      var rows = f.items.map(function (it) {
+        var head = '';
+        if (it.s && it.s !== sec) { sec = it.s; head = '<div class="ans-sec">' + esc(it.s) + '</div>'; }
+        return head + '<div class="ans-row"><span class="ans-l">' + esc(it.l) + '</span><span class="ans-v">' + esc(it.v) + '</span></div>';
+      }).join('');
+      return '<div class="ans-form"><div class="ans-title">' + esc(formTitle(k)) + '</div>' +
+        '<div class="ans-when">Submitted ' + esc(fmtDate(f.submitted_at)) + '</div>' + rows + '</div>';
+    }).join('');
+    return '<details class="ans"><summary>View answers (' + keys.length + ' form' + (keys.length === 1 ? '' : 's') + ')</summary>' + body +
+      '<div class="ans-note">W-9 and payment details, ID numbers, ID photos, and medical details are not saved here. They are only in the PDFs.</div></details>';
+  }
+
+  var PHOTO_NAMES = { 'headshot': 'Headshot', 'license-front': 'License front', 'license-back': 'License back' };
+  function photosHtml(p) {
+    var list = (p.photos || []).filter(function (x) { return PHOTO_NAMES[x.slot]; });
+    if (!list.length) return '';
+    var order = Object.keys(PHOTO_NAMES);
+    list.sort(function (a, b) { return order.indexOf(a.slot) - order.indexOf(b.slot); });
+    var key = getKey();
+    return '<details class="ans"><summary>Photos (' + list.length + ')</summary><div class="pics">' + list.map(function (x) {
+      var src = WORKER + '/photo?key=' + encodeURIComponent(key) + '&email=' + encodeURIComponent(p.email) + '&slot=' + encodeURIComponent(x.slot);
+      return '<a class="pic" href="' + esc(src) + '" target="_blank" rel="noopener"><img loading="lazy" alt="' + esc(PHOTO_NAMES[x.slot]) +
+        '" src="' + esc(src) + '">' + esc(PHOTO_NAMES[x.slot]) + '</a>';
+    }).join('') + '</div><div class="ans-note">Tap a photo to open it full size, then save it.</div></details>';
+  }
+
   function render(people) {
     ALL = people;
     lock.hidden = true; board.hidden = false; foot.hidden = false;
@@ -189,6 +242,8 @@
         items +
         '<div class="meta">Total time on onboarding pages: ' + esc(fmtDur(Object.keys(p.visits || {}).reduce(function (a, k) { return a + ((p.visits[k] || {}).seconds || 0); }, 0))) + '</div>' +
         '<div class="meta">Last activity: ' + esc(fmtDate(pr.updated_at)) + '</div>' +
+        answersHtml(p.answers) +
+        photosHtml(p) +
         '</div>';
     }).join('');
   }

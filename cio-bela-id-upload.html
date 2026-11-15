@@ -543,6 +543,34 @@ function scrollTop() {
       doc.setTextColor(mid[0], mid[1], mid[2]);
       doc.text(dateStr, W - M, H - 4.5, { align: 'right' });
 
+      // Photos of the uploaded ID and license, shrunk so the PDF stays small enough to text
+      var photoSlots = [['GOVERNMENT ID — FRONT', 'zone-id-front'], ['GOVERNMENT ID — BACK', 'zone-id-back'],
+                        ['TX LICENSE — FRONT', 'zone-lic'], ['TX LICENSE — BACK', 'zone-lic-back']];
+      var photos = [];
+      for (var ps = 0; ps < photoSlots.length; ps++) {
+        var pf = uploads[photoSlots[ps][1]], pimg = null;
+        if (pf && window.CioPhotos) { try { pimg = await window.CioPhotos.shrink(pf, 1400, 0.8); } catch (e) { pimg = null; } }
+        if (pimg) photos.push([photoSlots[ps][0], pimg]);
+      }
+      var py = 0;
+      for (var pn = 0; pn < photos.length; pn++) {
+        if (pn % 2 === 0) {
+          doc.addPage();
+          doc.setFillColor(cream[0], cream[1], cream[2]); doc.rect(0, 0, W, H, 'F');
+          doc.setFontSize(7.5); doc.setFont('helvetica','bold'); doc.setTextColor(gold[0], gold[1], gold[2]);
+          doc.text('UPLOADED DOCUMENTS', M, 16);
+          doc.setFillColor(ink[0], ink[1], ink[2]); doc.rect(0, H - 10, W, 10, 'F');
+          doc.setFontSize(6.5); doc.setFont('helvetica','normal'); doc.setTextColor(gold[0], gold[1], gold[2]);
+          doc.text('Cio Bela — ID & License Verification Record  |  Confidential', M, H - 4.5);
+          py = 24;
+        }
+        var pinfo = photos[pn][1], boxH = 110, pscale = Math.min(CW / pinfo.w, boxH / pinfo.h);
+        doc.setFontSize(7); doc.setFont('helvetica','bold'); doc.setTextColor(mid[0], mid[1], mid[2]);
+        doc.text(photos[pn][0], M, py);
+        try { doc.addImage(pinfo.data, 'JPEG', M, py + 3, pinfo.w * pscale, pinfo.h * pscale); } catch (e) {}
+        py += boxH + 12;
+      }
+
       doc.save('CioBela-IDVerification-' + name.replace(/\s+/g, '-') + '.pdf');
     } catch(err) { console.error('PDF error:', err); }
 

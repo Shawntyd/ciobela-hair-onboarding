@@ -410,6 +410,54 @@
       <textarea id="f-anything-else" placeholder="Anything that didn't fit anywhere else — have at it..." rows="4"></textarea>
     </div>
 
+    <div class="section-divider"><span>Your Schedule</span></div>
+
+    <div class="field-group">
+      <label class="field-label">Which days and hours will you work at the salon? <span class="req">*</span></label>
+      <p class="field-sub">Choose Working or Off for each day, then add your start and end times. We use this to set up your booking calendar.</p>
+    </div>
+
+    <div class="svc-item">
+      <p class="svc-name"><strong>Monday</strong></p>
+      <div class="yn-row"><label class="yn-opt"><input type="radio" name="day1" value="working" onchange="td('sd1',true)"><span>Working</span></label><label class="yn-opt"><input type="radio" name="day1" value="off" onchange="td('sd1',false)"><span>Off</span></label></div>
+      <div class="svc-detail" id="sd1"><div><div class="dl">Start Time</div><input type="text" id="sd1-start" placeholder="e.g. 10:00 AM"></div><div><div class="dl">End Time</div><input type="text" id="sd1-end" placeholder="e.g. 6:00 PM"></div></div>
+    </div>
+    <div class="svc-item">
+      <p class="svc-name"><strong>Tuesday</strong></p>
+      <div class="yn-row"><label class="yn-opt"><input type="radio" name="day2" value="working" onchange="td('sd2',true)"><span>Working</span></label><label class="yn-opt"><input type="radio" name="day2" value="off" onchange="td('sd2',false)"><span>Off</span></label></div>
+      <div class="svc-detail" id="sd2"><div><div class="dl">Start Time</div><input type="text" id="sd2-start" placeholder="e.g. 10:00 AM"></div><div><div class="dl">End Time</div><input type="text" id="sd2-end" placeholder="e.g. 6:00 PM"></div></div>
+    </div>
+    <div class="svc-item">
+      <p class="svc-name"><strong>Wednesday</strong></p>
+      <div class="yn-row"><label class="yn-opt"><input type="radio" name="day3" value="working" onchange="td('sd3',true)"><span>Working</span></label><label class="yn-opt"><input type="radio" name="day3" value="off" onchange="td('sd3',false)"><span>Off</span></label></div>
+      <div class="svc-detail" id="sd3"><div><div class="dl">Start Time</div><input type="text" id="sd3-start" placeholder="e.g. 10:00 AM"></div><div><div class="dl">End Time</div><input type="text" id="sd3-end" placeholder="e.g. 6:00 PM"></div></div>
+    </div>
+    <div class="svc-item">
+      <p class="svc-name"><strong>Thursday</strong></p>
+      <div class="yn-row"><label class="yn-opt"><input type="radio" name="day4" value="working" onchange="td('sd4',true)"><span>Working</span></label><label class="yn-opt"><input type="radio" name="day4" value="off" onchange="td('sd4',false)"><span>Off</span></label></div>
+      <div class="svc-detail" id="sd4"><div><div class="dl">Start Time</div><input type="text" id="sd4-start" placeholder="e.g. 10:00 AM"></div><div><div class="dl">End Time</div><input type="text" id="sd4-end" placeholder="e.g. 6:00 PM"></div></div>
+    </div>
+    <div class="svc-item">
+      <p class="svc-name"><strong>Friday</strong></p>
+      <div class="yn-row"><label class="yn-opt"><input type="radio" name="day5" value="working" onchange="td('sd5',true)"><span>Working</span></label><label class="yn-opt"><input type="radio" name="day5" value="off" onchange="td('sd5',false)"><span>Off</span></label></div>
+      <div class="svc-detail" id="sd5"><div><div class="dl">Start Time</div><input type="text" id="sd5-start" placeholder="e.g. 10:00 AM"></div><div><div class="dl">End Time</div><input type="text" id="sd5-end" placeholder="e.g. 6:00 PM"></div></div>
+    </div>
+    <div class="svc-item">
+      <p class="svc-name"><strong>Saturday</strong></p>
+      <div class="yn-row"><label class="yn-opt"><input type="radio" name="day6" value="working" onchange="td('sd6',true)"><span>Working</span></label><label class="yn-opt"><input type="radio" name="day6" value="off" onchange="td('sd6',false)"><span>Off</span></label></div>
+      <div class="svc-detail" id="sd6"><div><div class="dl">Start Time</div><input type="text" id="sd6-start" placeholder="e.g. 10:00 AM"></div><div><div class="dl">End Time</div><input type="text" id="sd6-end" placeholder="e.g. 6:00 PM"></div></div>
+    </div>
+    <div class="svc-item">
+      <p class="svc-name"><strong>Sunday</strong></p>
+      <div class="yn-row"><label class="yn-opt"><input type="radio" name="day7" value="working" onchange="td('sd7',true)"><span>Working</span></label><label class="yn-opt"><input type="radio" name="day7" value="off" onchange="td('sd7',false)"><span>Off</span></label></div>
+      <div class="svc-detail" id="sd7"><div><div class="dl">Start Time</div><input type="text" id="sd7-start" placeholder="e.g. 10:00 AM"></div><div><div class="dl">End Time</div><input type="text" id="sd7-end" placeholder="e.g. 6:00 PM"></div></div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Anything else about your schedule?</label>
+      <textarea id="f-schedule-notes" placeholder="e.g. Every other Saturday, or Sundays by appointment only" rows="3"></textarea>
+    </div>
+
     <div class="section-divider"><span>Electronic Signature</span></div>
 
     <div class="legal-statement">
@@ -496,6 +544,18 @@
     const sigName = gv('sig-name');
     if (!sigName) { alert('Please type your full legal name to complete your signature.'); return; }
     if (!sigHasSig) { alert('Please sign in the signature box before submitting.'); return; }
+
+    // Your Schedule: every working day needs a start and end time
+    var schedDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+    var schedNotes = gv('f-schedule-notes'), schedLines = [], schedMissing = '';
+    schedDays.forEach(function (d, i) {
+      if (gr('day' + (i + 1)) !== 'working') return;
+      var st = gv('sd' + (i + 1) + '-start'), en = gv('sd' + (i + 1) + '-end');
+      if (!st || !en) { if (!schedMissing) schedMissing = d; return; }
+      schedLines.push([d, st + ' to ' + en]);
+    });
+    if (schedMissing) { alert('Please add your start and end time for ' + schedMissing + ' in Your Schedule.'); return; }
+    if (!schedLines.length && !schedNotes) { alert('Please fill in Your Schedule so we know which days and hours you will work.'); return; }
 
     const btn = document.querySelector('.btn-submit');
     btn.textContent = 'Generating PDF...'; btn.disabled = true;
@@ -609,6 +669,10 @@
       field('Headshot Status', gr('headshot'));
       field('Social Media Consent', gr('social-consent'));
       field('Additional Notes', gv('f-anything-else'));
+
+      heading('Your Schedule');
+      schedLines.forEach(function (p) { field(p[0], p[1]); });
+      field('Schedule Notes', schedNotes);
 
       // Signature page
       doc.addPage(); y=20;
